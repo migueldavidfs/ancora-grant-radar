@@ -1,0 +1,1464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grant Intelligence Dashboard — Fundação Âncora</title>
+<style>
+  :root {
+    --navy:#1a2744;--blue:#2563eb;--blue-light:#dbeafe;
+    --green:#16a34a;--green-light:#dcfce7;
+    --amber:#d97706;--amber-light:#fef3c7;
+    --red:#dc2626;--red-light:#fee2e2;
+    --purple:#7c3aed;--purple-light:#ede9fe;
+    --pink:#db2777;--pink-light:#fce7f3;
+    --slate:#475569;--slate-light:#f1f5f9;
+    --gray:#6b7280;--gray-light:#f3f4f6;
+    --border:#e5e7eb;--white:#ffffff;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:#f0f4f8;color:#111827;font-size:13px;}
+  .header{background:var(--navy);color:white;padding:18px 28px;display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid var(--blue);}
+  .header-left h1{font-size:19px;font-weight:700;}
+  .header-left p{font-size:11px;color:#94a3b8;margin-top:2px;}
+  .header-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .hbtn{background:transparent;color:white;border:1px solid rgba(255,255,255,.35);padding:7px 14px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;transition:background .15s;}
+  .hbtn:hover{background:rgba(255,255,255,.12);}
+  .hbtn-save{background:#16a34a;color:white;border:1px solid #15803d;padding:7px 14px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;transition:all .2s;}
+  .hbtn-save:hover{background:#15803d;}
+  .hbtn-save.saved{background:#0f766e;border-color:#0f766e;}
+  .save-status{font-size:11px;color:#94a3b8;margin-left:2px;}
+  .main{padding:20px 28px;max-width:1600px;}
+  .stats-row{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:18px;}
+  .stat-card{background:white;border-radius:10px;padding:13px 15px;border:1px solid var(--border);box-shadow:0 1px 3px rgba(0,0,0,.05);}
+  .stat-card .label{font-size:11px;color:var(--gray);font-weight:500;text-transform:uppercase;letter-spacing:.5px;}
+  .stat-card .value{font-size:22px;font-weight:700;margin-top:4px;}
+  .stat-card .sub{font-size:11px;color:var(--gray);margin-top:1px;}
+  .stat-blue .value{color:var(--blue);}.stat-green .value{color:var(--green);}
+  .stat-amber .value{color:var(--amber);}.stat-purple .value{color:var(--purple);}
+  .stat-red .value{color:var(--red);}.stat-navy .value{color:var(--navy);}
+  .alert-box{background:#fef3c7;border:1px solid #fcd34d;border-radius:8px;padding:11px 14px;margin-bottom:16px;display:flex;align-items:flex-start;gap:10px;}
+  .alert-text{font-size:12px;color:#92400e;line-height:1.5;}
+  .tabs{display:flex;border-bottom:2px solid var(--border);margin-bottom:16px;}
+  .tab{padding:9px 18px;cursor:pointer;font-size:13px;font-weight:500;color:var(--gray);border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s;}
+  .tab:hover{color:var(--navy);}
+  .tab.active{color:var(--blue);border-bottom-color:var(--blue);font-weight:700;}
+  .filter-row{display:flex;gap:8px;margin-bottom:11px;flex-wrap:wrap;align-items:center;}
+  .filter-row select,.filter-row input{padding:6px 10px;border:1px solid var(--border);border-radius:6px;font-size:12px;background:white;color:#111827;outline:none;}
+  .filter-row select:focus,.filter-row input:focus{border-color:var(--blue);}
+  .filter-label{font-size:12px;color:var(--gray);font-weight:500;}
+  .table-wrapper{background:white;border-radius:10px;border:1px solid var(--border);box-shadow:0 1px 4px rgba(0,0,0,.05);overflow:hidden;margin-bottom:20px;}
+  table{width:100%;border-collapse:collapse;}
+  thead th{background:var(--navy);color:white;padding:10px 13px;text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;cursor:pointer;user-select:none;}
+  thead th:hover{background:#243058;}
+  tbody tr{border-bottom:1px solid var(--border);transition:background .1s;}
+  tbody tr:last-child{border-bottom:none;}
+  tbody tr:hover{background:#f8fafc;}
+  tbody tr.not-relevant{opacity:.4;}
+  tbody td{padding:10px 13px;vertical-align:top;}
+  .status-sel{padding:4px 8px;border-radius:20px;font-size:11px;font-weight:600;border:none;cursor:pointer;outline:none;}
+  .s-reviewing{background:var(--blue-light);color:#1d4ed8;}
+  .s-interesting{background:var(--green-light);color:#15803d;}
+  .s-inprogress{background:var(--amber-light);color:#92400e;}
+  .s-applied{background:var(--purple-light);color:#5b21b6;}
+  .s-watching{background:var(--pink-light);color:#9d174d;}
+  .s-notrelevant{background:#f3f4f6;color:#9ca3af;}
+  .dl-urgent{color:var(--red);font-weight:700;}
+  .dl-soon{color:var(--amber);font-weight:600;}
+  .dl-ok{color:var(--green);}
+  .dl-tbd{color:var(--gray);font-style:italic;}
+  .fit-tag{display:inline-block;font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px;margin:2px 2px 0 0;text-transform:uppercase;letter-spacing:.3px;}
+  .ft-education{background:#fef3c7;color:#92400e;}
+  .ft-health{background:var(--green-light);color:#15803d;}
+  .ft-housing{background:var(--purple-light);color:#5b21b6;}
+  .ft-women{background:var(--pink-light);color:#9d174d;}
+  .ft-children{background:var(--blue-light);color:#1d4ed8;}
+  .ft-env{background:#d1fae5;color:#065f46;}
+  .ft-cso{background:var(--slate-light);color:var(--slate);}
+  .ft-water{background:#e0f2fe;color:#075985;}
+  .ft-custom{background:#f3e8ff;color:#7e22ce;}
+  .btn-open{display:inline-flex;align-items:center;gap:3px;color:var(--blue);text-decoration:none;font-size:11px;font-weight:600;padding:4px 9px;background:var(--blue-light);border-radius:5px;transition:background .12s;white-space:nowrap;}
+  .btn-open:hover{background:#bfdbfe;}
+  .btn-edit{display:inline-flex;align-items:center;gap:3px;color:var(--gray);font-size:11px;font-weight:600;padding:4px 9px;background:#f3f4f6;border-radius:5px;border:none;cursor:pointer;white-space:nowrap;}
+  .btn-edit:hover{background:#e5e7eb;color:var(--navy);}
+  .btn-nr{display:inline-flex;align-items:center;gap:3px;color:#9ca3af;font-size:11px;font-weight:600;padding:4px 9px;background:#f9fafb;border-radius:5px;border:1px solid #e5e7eb;cursor:pointer;white-space:nowrap;transition:all .12s;}
+  .btn-nr:hover{background:#fee2e2;color:var(--red);border-color:#fca5a5;}
+  .btn-restore{display:inline-flex;align-items:center;gap:3px;color:var(--blue);font-size:11px;font-weight:600;padding:4px 9px;background:var(--blue-light);border-radius:5px;border:none;cursor:pointer;white-space:nowrap;}
+  .action-col{display:flex;flex-direction:column;gap:4px;min-width:96px;}
+  .grant-name{font-weight:600;font-size:12px;color:#111827;}
+  .funder-name{font-size:11px;color:var(--gray);margin-top:2px;}
+  .grant-note{font-size:10px;color:var(--gray);font-style:italic;margin-top:3px;}
+  .strategic-fit{font-size:11px;color:#374151;line-height:1.5;max-width:250px;}
+  .dots{display:flex;gap:3px;margin-top:3px;}
+  .dot{width:7px;height:7px;border-radius:50%;background:#d1d5db;}
+  .dot.on{background:var(--blue);}
+  .no-results{text-align:center;padding:36px;color:var(--gray);font-size:13px;}
+  .pipeline-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;}
+  .proj-card{background:white;border:1px solid var(--border);border-radius:10px;padding:15px;box-shadow:0 1px 3px rgba(0,0,0,.04);position:relative;overflow:hidden;}
+  .proj-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+  .pc-edu::before{background:var(--amber);}.pc-health::before{background:var(--green);}
+  .pc-housing::before{background:var(--purple);}.pc-women::before{background:var(--pink);}
+  .pc-children::before{background:var(--blue);}.pc-env::before{background:#059669;}
+  .proj-name{font-weight:700;font-size:13px;color:var(--navy);margin-bottom:5px;}
+  .proj-desc{font-size:11px;color:#374151;line-height:1.5;margin-bottom:8px;}
+  .proj-tags{display:flex;flex-wrap:wrap;gap:3px;margin-bottom:8px;}
+  .match-section{border-top:1px solid var(--border);padding-top:8px;margin-top:8px;}
+  .match-title{font-size:10px;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;}
+  .match-item{display:flex;align-items:center;gap:5px;font-size:11px;margin-bottom:3px;color:var(--green);}
+  .match-item span{color:var(--navy);font-weight:500;}
+  .add-area{background:white;border:2px dashed var(--border);border-radius:10px;padding:18px;text-align:center;cursor:pointer;transition:border-color .15s;margin-bottom:20px;}
+  .add-area:hover{border-color:var(--blue);}
+  .add-area .add-icon{font-size:22px;color:var(--blue);margin-bottom:4px;}
+  .add-area p{color:var(--gray);font-size:12px;}
+  .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;align-items:center;justify-content:center;}
+  .overlay.open{display:flex;}
+  .modal{background:white;border-radius:14px;padding:26px;width:680px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.25);}
+  .modal h2{font-size:16px;font-weight:700;color:var(--navy);margin-bottom:18px;}
+  .form-2col{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+  .form-1col{margin-bottom:12px;}
+  .fg{display:flex;flex-direction:column;gap:4px;}
+  .fg.span2{grid-column:1/-1;}
+  .fg label{font-size:11px;font-weight:600;color:var(--gray);text-transform:uppercase;letter-spacing:.4px;}
+  .fg input,.fg select,.fg textarea{padding:8px 11px;border:1px solid var(--border);border-radius:6px;font-size:12px;outline:none;font-family:inherit;background:white;color:#111827;}
+  .fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--blue);}
+  .fg textarea{resize:vertical;min-height:70px;}
+  .theme-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:4px;}
+  .theme-cb{display:flex;align-items:center;gap:6px;padding:6px 9px;border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:12px;transition:all .12s;background:white;user-select:none;}
+  .theme-cb:hover{border-color:var(--blue);background:var(--blue-light);}
+  .theme-cb.checked{border-color:var(--blue);background:var(--blue-light);color:#1d4ed8;font-weight:600;}
+  .custom-theme-row{display:flex;gap:6px;margin-top:8px;}
+  .custom-theme-row input{flex:1;padding:6px 10px;border:1px solid var(--border);border-radius:6px;font-size:12px;outline:none;}
+  .custom-theme-row input:focus{border-color:var(--blue);}
+  .custom-theme-row button{padding:6px 14px;background:var(--navy);color:white;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;}
+  .themes-preview{margin-top:6px;min-height:20px;}
+  .modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:18px;}
+  .btn-cancel{padding:8px 16px;border:1px solid var(--border);border-radius:6px;background:white;cursor:pointer;font-size:12px;font-weight:600;color:var(--gray);}
+  .btn-save{padding:8px 16px;border:none;border-radius:6px;background:var(--blue);color:white;cursor:pointer;font-size:12px;font-weight:600;}
+  .btn-save:hover{background:#1d4ed8;}
+  .btn-delete-modal{padding:8px 16px;border:none;border-radius:6px;background:var(--red);color:white;cursor:pointer;font-size:12px;font-weight:600;margin-right:auto;}
+  .btn-delete-modal:hover{background:#b91c1c;}
+  /* === DOCUMENTS === */
+  .docs-section{margin-bottom:14px;border:1px solid var(--border);border-radius:8px;overflow:hidden;}
+  .docs-section-head{background:var(--gray-light);padding:8px 12px;font-size:11px;font-weight:700;color:var(--slate);text-transform:uppercase;letter-spacing:.4px;display:flex;align-items:center;gap:6px;}
+  .doc-list{padding:8px 10px;display:flex;flex-direction:column;gap:5px;}
+  .doc-list-empty{font-size:11px;color:var(--gray);font-style:italic;padding:4px 2px;}
+  .doc-row{display:flex;align-items:center;gap:6px;background:#f8fafc;border:1px solid var(--border);border-radius:5px;padding:6px 9px;}
+  .doc-icon{font-size:15px;flex-shrink:0;}
+  .doc-meta{flex:1;min-width:0;}
+  .doc-name{font-size:12px;font-weight:600;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .doc-sub{font-size:10px;color:var(--gray);margin-top:1px;}
+  .doc-type-tag{font-size:10px;font-weight:700;padding:1px 6px;border-radius:3px;background:var(--blue-light);color:#1d4ed8;text-transform:uppercase;letter-spacing:.3px;flex-shrink:0;}
+  .doc-type-tag.link-tag{background:#fef3c7;color:#92400e;}
+  .doc-open-btn{font-size:11px;color:var(--blue);font-weight:600;padding:4px 9px;background:var(--blue-light);border-radius:4px;border:none;cursor:pointer;flex-shrink:0;white-space:nowrap;}
+  .doc-open-btn:hover{background:#bfdbfe;}
+  .doc-remove{background:none;border:none;cursor:pointer;color:#d1d5db;font-size:15px;padding:0 3px;line-height:1;flex-shrink:0;}
+  .doc-remove:hover{color:var(--red);}
+  /* Upload/Link tabs */
+  .doc-tabs{display:flex;border-top:1px solid var(--border);}
+  .doc-tab{flex:1;padding:7px;text-align:center;font-size:12px;font-weight:600;color:var(--gray);cursor:pointer;background:#fafafa;border:none;border-bottom:2px solid transparent;transition:all .12s;}
+  .doc-tab.active{color:var(--blue);border-bottom-color:var(--blue);background:white;}
+  .doc-tab:hover{color:var(--navy);}
+  .doc-panel{padding:10px;background:white;border-top:1px solid var(--border);display:none;}
+  .doc-panel.active{display:block;}
+  .doc-upload-zone{border:2px dashed var(--border);border-radius:7px;padding:18px;text-align:center;cursor:pointer;transition:border-color .15s;margin-bottom:8px;position:relative;}
+  .doc-upload-zone:hover,.doc-upload-zone.dragover{border-color:var(--blue);background:var(--blue-light);}
+  .doc-upload-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+  .doc-upload-zone p{font-size:12px;color:var(--gray);pointer-events:none;}
+  .doc-upload-zone .upload-icon{font-size:22px;pointer-events:none;}
+  .doc-selected-file{font-size:12px;font-weight:600;color:var(--navy);background:#f0fdf4;border:1px solid #bbf7d0;border-radius:5px;padding:6px 10px;margin-bottom:8px;display:none;}
+  .doc-form-row{display:grid;grid-template-columns:1fr auto auto;gap:6px;align-items:center;}
+  .doc-form-row input,.doc-form-row select{padding:6px 9px;border:1px solid var(--border);border-radius:5px;font-size:12px;outline:none;font-family:inherit;background:white;}
+  .doc-form-row input:focus,.doc-form-row select:focus{border-color:var(--blue);}
+  .doc-form-row button{padding:6px 14px;background:var(--navy);color:white;border:none;border-radius:5px;cursor:pointer;font-size:12px;font-weight:600;white-space:nowrap;}
+  .doc-link-row{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px;}
+  .doc-link-row input{padding:6px 9px;border:1px solid var(--border);border-radius:5px;font-size:12px;outline:none;font-family:inherit;}
+  .doc-link-row input:focus{border-color:var(--blue);}
+  .doc-link-bottom{display:grid;grid-template-columns:auto 1fr;gap:6px;align-items:center;}
+  .doc-link-bottom select{padding:6px 9px;border:1px solid var(--border);border-radius:5px;font-size:12px;outline:none;background:white;}
+  .doc-link-bottom button{padding:6px 14px;background:var(--navy);color:white;border:none;border-radius:5px;cursor:pointer;font-size:12px;font-weight:600;}
+  /* doc badges in table */
+  .doc-badge{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px;background:var(--blue-light);color:#1d4ed8;border:none;cursor:pointer;margin:2px 2px 0 0;white-space:nowrap;}
+  .doc-badge:hover{background:#bfdbfe;}
+  .doc-badge.link-badge{background:#fef3c7;color:#92400e;}
+  .doc-badge.link-badge:hover{background:#fde68a;}
+  .footer{text-align:center;padding:16px;color:var(--gray);font-size:11px;border-top:1px solid var(--border);background:white;margin-top:6px;}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+  .blink{animation:pulse 1.5s infinite;}
+  @media(max-width:1100px){.stats-row{grid-template-columns:repeat(3,1fr);}.pipeline-grid{grid-template-columns:repeat(2,1fr);}}
+
+  /* ── Pipeline status badges ── */
+  .proj-status{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;}
+  .ps-planning{background:#f0f4ff;color:#4a6fa5;}.ps-drafting{background:#fff8e1;color:#e6a817;}
+  .ps-inprogress{background:#e8f5e9;color:#2e7d32;}.ps-submitted{background:#e3f2fd;color:#1565c0;}
+  .ps-underreview{background:#f3e5f5;color:#6a1b9a;}.ps-approved{background:#e8f5e9;color:#1b5e20;font-weight:900;}
+  .ps-rejected{background:#ffebee;color:#b71c1c;}
+  .proj-dates{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0;font-size:11px;}
+  .proj-date-pill{background:var(--gray-light);border-radius:6px;padding:3px 7px;color:var(--navy);}
+  .proj-date-pill.urgent{background:#fff3cd;color:#856404;}
+  .proj-actions{display:flex;gap:6px;margin-top:10px;}
+  .btn-edit-proj{background:#f0f4ff;color:#4a6fa5;border:1px solid #c8d8f0;border-radius:6px;padding:4px 11px;font-size:11px;cursor:pointer;font-weight:600;}
+  .btn-edit-proj:hover{background:#dce8fb;}
+  .btn-del-proj{background:#fff0f0;color:#c0392b;border:1px solid #f5c6c6;border-radius:6px;padding:4px 11px;font-size:11px;cursor:pointer;font-weight:600;}
+  .btn-del-proj:hover{background:#fdd;}
+  /* ── Supabase status bar ── */
+  #dbStatus{font-size:11px;color:var(--gray);margin-left:8px;}
+  #dbStatus.connected{color:#2e7d32;}
+  #dbStatus.error{color:#c0392b;}
+  @media(max-width:700px){.stats-row{grid-template-columns:repeat(2,1fr);}.pipeline-grid{grid-template-columns:1fr;}.main{padding:12px;}.header{padding:14px;flex-direction:column;gap:10px;}.theme-grid{grid-template-columns:repeat(2,1fr);}}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <h1>🏠 Grant Intelligence System — Fundação Âncora</h1>
+    <p>Affordable-housing funding radar · Portugal · EU, national &amp; philanthropic funders · Last radar run: 8 September 2026 · Live data: <span id="lastUpdated"></span></p>
+  </div>
+  <div class="header-right">
+    <span class="save-status" id="saveStatus"></span><span id="dbStatus"></span>
+    <button class="hbtn-save" id="saveBtn" onclick="manualSave()">💾 Save</button>
+    <button class="hbtn" onclick="exportJSON()">⬇ Export Backup</button>
+    <button class="hbtn" onclick="openModal()">＋ Add Grant</button>
+    <button class="hbtn" onclick="openAddProjectModal()">＋ Add Project</button>
+  </div>
+</div>
+
+<div class="main">
+  <div class="alert-box" id="urgentAlert" style="display:none;">
+    <div style="font-size:16px;flex-shrink:0;">⚠️</div>
+    <div class="alert-text" id="alertText"></div>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-card stat-blue"><div class="label">Tracked</div><div class="value" id="sTotal">0</div><div class="sub">active grants</div></div>
+    <div class="stat-card stat-green"><div class="label">Interesting</div><div class="value" id="sInteresting">0</div><div class="sub">high fit</div></div>
+    <div class="stat-card stat-amber"><div class="label">In Progress</div><div class="value" id="sInProgress">0</div><div class="sub">being worked on</div></div>
+    <div class="stat-card stat-red"><div class="label">Urgent</div><div class="value blink" id="sUrgent">0</div><div class="sub">≤30 days</div></div>
+    <div class="stat-card stat-purple"><div class="label">Max Potential</div><div class="value" id="sPotential">—</div><div class="sub">single grant</div></div>
+    <div class="stat-card stat-navy"><div class="label">Projects</div><div class="value" id="sProjects">0</div><div class="sub">in pipeline</div></div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" onclick="showTab('grants')">📋 Grant Opportunities</div>
+    <div class="tab" onclick="showTab('pipeline')">🏗️ Internal Pipeline</div>
+    <div class="tab" onclick="showTab('matches')">🔗 Smart Matches</div>
+    <div class="tab" onclick="showTab('sources')">🔍 Research Sources</div>
+  </div>
+
+  <div id="tab-grants">
+    <div class="filter-row">
+      <span class="filter-label">Filter:</span>
+      <select id="fStatus" onchange="applyFilters()">
+        <option value="">All Statuses</option>
+        <option value="reviewing">Reviewing</option>
+        <option value="interesting">Interesting</option>
+        <option value="inprogress">In Progress</option>
+        <option value="applied">Applied</option>
+        <option value="watching">Watching</option>
+        <option value="notrelevant">Not Relevant</option>
+      </select>
+      <select id="fFunder" onchange="applyFilters()"><option value="">All Funders</option></select>
+      <select id="fTheme" onchange="applyFilters()"><option value="">All Themes</option></select>
+      <input type="text" id="fSearch" placeholder="Search grants…" oninput="applyFilters()" style="min-width:180px;">
+    </div>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th onclick="sortBy('status')">Status ↕</th>
+            <th onclick="sortBy('name')">Grant &amp; Funder ↕</th>
+            <th onclick="sortBy('deadline')">Deadline ↕</th>
+            <th onclick="sortBy('funding')">Max Funding ↕</th>
+            <th>Themes</th>
+            <th>Strategic Fit</th>
+            <th onclick="sortBy('fit')">Fit ↕</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="grantsTbody"></tbody>
+      </table>
+      <div class="no-results" id="noResults" style="display:none;">No grants match your filters.</div>
+    </div>
+    <div class="add-area" onclick="openModal()">
+      <div class="add-icon">＋</div>
+      <p>Click to add a new grant opportunity</p>
+    </div>
+  </div>
+
+  <div id="tab-pipeline" style="display:none;">
+    <p style="font-size:12px;color:var(--gray);margin-bottom:14px;">Your active projects needing funding — automatically matched against tracked grants.</p>
+    <div class="pipeline-grid" id="pipelineGrid"></div>
+    <div class="add-area" onclick="openAddProjectModal()">
+      <div class="add-icon">＋</div>
+      <p>Add an internal project to the pipeline</p>
+    </div>
+  </div>
+
+  <div id="tab-matches" style="display:none;">
+    <p style="font-size:12px;color:var(--gray);margin-bottom:14px;">Automatic alignment between your projects and open grant opportunities.</p>
+    <div id="matchesContainer"></div>
+  </div>
+
+  <div id="tab-sources" style="display:none;">
+    <p style="font-size:12px;color:var(--gray);margin-bottom:14px;">All databases and portals checked on every grant radar run. Click any source to open it directly.</p>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:12px;margin-bottom:20px;">
+
+      <div style="background:white;border:1px solid var(--border);border-radius:10px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.05);">
+        <div style="background:var(--navy);color:white;padding:8px 14px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;">🇵🇹 Portuguese Public Funders</div>
+        <div style="padding:12px 14px;display:flex;flex-direction:column;gap:9px;">
+          <a href="https://www.portaldahabitacao.pt/" target="_blank" class="btn-open" style="justify-content:space-between;">IHRU / Portal da Habitação — Programmes <span>↗</span></a>
+          <a href="https://www.portaldahabitacao.pt/1.%C2%BA-direito" target="_blank" class="btn-open" style="justify-content:space-between;">1.º Direito — Housing Access <span>↗</span></a>
+          <a href="https://recuperarportugal.gov.pt/prr-resiliencia/habitacao/re-c02-i01-programa-de-apoio-ao-acesso-a-habitacao/" target="_blank" class="btn-open" style="justify-content:space-between;">Recuperar Portugal (PRR) — Housing RE-C02 <span>↗</span></a>
+          <a href="https://www.bpfomento.pt/" target="_blank" class="btn-open" style="justify-content:space-between;">Banco Português de Fomento — InvestEU <span>↗</span></a>
+        </div>
+      </div>
+
+      <div style="background:white;border:1px solid var(--border);border-radius:10px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.05);">
+        <div style="background:#1d4ed8;color:white;padding:8px 14px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;">🇪🇺 EU Housing & Funding</div>
+        <div style="padding:12px 14px;display:flex;flex-direction:column;gap:9px;">
+          <a href="https://housing.ec.europa.eu/european-affordable-housing-plan_en" target="_blank" class="btn-open" style="justify-content:space-between;">European Affordable Housing Plan <span>↗</span></a>
+          <a href="https://housing.ec.europa.eu/pan-european-housing-investment-platform_en" target="_blank" class="btn-open" style="justify-content:space-between;">Pan-European Housing Investment Platform <span>↗</span></a>
+          <a href="https://ec.europa.eu/info/funding-tenders/opportunities/portal/screen/opportunities/calls-for-proposals" target="_blank" class="btn-open" style="justify-content:space-between;">EU Funding & Tenders Portal <span>↗</span></a>
+          <a href="https://new-european-bauhaus.europa.eu/index_en" target="_blank" class="btn-open" style="justify-content:space-between;">New European Bauhaus <span>↗</span></a>
+        </div>
+      </div>
+
+      <div style="background:white;border:1px solid var(--border);border-radius:10px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.05);">
+        <div style="background:#059669;color:white;padding:8px 14px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;">🏦 Development Banks & Loan Finance</div>
+        <div style="padding:12px 14px;display:flex;flex-direction:column;gap:9px;">
+          <a href="https://www.eib.org/en/projects/topics/sustainable-cities-regions/urban-development/affordable-and-sustainable-housing" target="_blank" class="btn-open" style="justify-content:space-between;">EIB — Affordable & Sustainable Housing <span>↗</span></a>
+          <a href="https://coebank.org/en/sectors/affordable-housing/" target="_blank" class="btn-open" style="justify-content:space-between;">Council of Europe Development Bank (CEB) <span>↗</span></a>
+          <a href="https://investeu.europa.eu/index_en" target="_blank" class="btn-open" style="justify-content:space-between;">InvestEU — Social & Sustainable Infrastructure <span>↗</span></a>
+        </div>
+      </div>
+
+      <div style="background:white;border:1px solid var(--border);border-radius:10px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.05);">
+        <div style="background:#7c3aed;color:white;padding:8px 14px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;">🤝 Philanthropy, Impact & Regional</div>
+        <div style="padding:12px 14px;display:flex;flex-direction:column;gap:9px;">
+          <a href="https://gulbenkian.pt/programas/programa-desenvolvimento-sustentavel/novos-instrumentos-de-financiamento/" target="_blank" class="btn-open" style="justify-content:space-between;">Fundação Calouste Gulbenkian — Impact <span>↗</span></a>
+          <a href="https://pis.portugal2030.pt/en/home-en/" target="_blank" class="btn-open" style="justify-content:space-between;">Portugal Inovação Social 2030 <span>↗</span></a>
+          <a href="https://portugal2030.pt/" target="_blank" class="btn-open" style="justify-content:space-between;">Portugal 2030 — Operational Programmes <span>↗</span></a>
+          <a href="https://news.fundsforngos.org/tag/housing/" target="_blank" class="btn-open" style="justify-content:space-between;">fundsforNGOs — Housing (news) <span>↗</span></a>
+        </div>
+      </div>
+
+    
+    <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:12px 16px;font-size:12px;color:#166534;">
+      💡 <strong>Tip:</strong> These sources are automatically checked by your bi-weekly Grant Radar (runs bi-weekly). Use this tab to do a manual check at any time between runs.
+    </div>
+  </div>
+</div>
+
+<!-- GRANT MODAL (shared Add / Edit) -->
+<div class="overlay" id="grantModal">
+  <div class="modal">
+    <h2 id="modalTitle">Add Grant Opportunity</h2>
+    <input type="hidden" id="editingId" value="">
+    <div class="form-2col">
+      <div class="fg span2">
+        <label>Grant Name *</label>
+        <input type="text" id="fName" placeholder="e.g. IHRU Affordable Housing Programme 2026">
+      </div>
+      <div class="fg span2">
+        <label>Funder * (type freely or choose from suggestions)</label>
+        <input type="text" id="fFunderInput" list="fundersList" placeholder="e.g. IHRU, EIB, Gulbenkian, PRR…" autocomplete="off">
+        <datalist id="fundersList">
+          <option value="IHRU — Institute of Housing & Urban Rehabilitation">
+          <option value="Government of Portugal">
+          <option value="PRR / Recuperar Portugal">
+          <option value="European Investment Bank (EIB)">
+          <option value="European Commission (DG Housing / REGIO / ENER)">
+          <option value="Banco Português de Fomento">
+          <option value="Council of Europe Development Bank (CEB)">
+          <option value="Fundação Calouste Gulbenkian">
+          <option value="Portugal Inovação Social">
+          <option value="InvestEU">
+          <option value="Municipality (Lisboa / Oeiras / Cascais / Sintra / Évora / Coimbra / Porto)">
+        </datalist>
+      </div>
+      <div class="fg">
+        <label>Status</label>
+        <select id="fStatus2">
+          <option value="reviewing">🔍 Reviewing</option>
+          <option value="interesting">⭐ Interesting</option>
+          <option value="inprogress">⚡ In Progress</option>
+          <option value="applied">✓ Applied</option>
+          <option value="watching">👁 Watching</option>
+          <option value="notrelevant">✗ Not Relevant</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label>Fit Score (1–5)</label>
+        <select id="fFit">
+          <option value="5">⭐⭐⭐⭐⭐ Excellent (5)</option>
+          <option value="4">⭐⭐⭐⭐ Good (4)</option>
+          <option value="3" selected>⭐⭐⭐ Moderate (3)</option>
+          <option value="2">⭐⭐ Low (2)</option>
+          <option value="1">⭐ Minimal (1)</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label>Deadline (display label)</label>
+        <input type="text" id="fDeadline" placeholder="e.g. May 8, 2026 or TBA Q3 2026">
+      </div>
+      <div class="fg">
+        <label>Deadline Date (for sorting &amp; alerts)</label>
+        <input type="date" id="fDeadlineDate">
+      </div>
+      <div class="fg">
+        <label>Max Funding (€)</label>
+        <input type="text" id="fFunding" placeholder="e.g. 300,000 or TBA">
+      </div>
+    </div>
+
+    <div class="form-1col">
+      <div class="fg">
+        <label>Themes — select any, add your own</label>
+        <div class="theme-grid" id="themeGrid"></div>
+        <div class="custom-theme-row">
+          <input type="text" id="customThemeInput" placeholder="Add a custom theme…">
+          <button onclick="addCustomTheme()">+ Add</button>
+        </div>
+        <div class="themes-preview" id="themesPreview"></div>
+      </div>
+    </div>
+
+    <div class="form-2col">
+      <div class="fg span2">
+        <label>Strategic Fit — why does this fit Fundação Âncora?</label>
+        <textarea id="fFitDesc" placeholder="Explain how this fits Fundação Âncora's affordable-housing mission, geography and active pillars…"></textarea>
+      </div>
+      <div class="fg span2">
+        <label>Direct URL to the specific call</label>
+        <input type="url" id="fUrl" placeholder="https://…">
+      </div>
+      <div class="fg span2">
+        <label>Notes / Next Steps</label>
+        <input type="text" id="fNotes" placeholder="e.g. Contact program officer · Partner needed · Check re-opening">
+      </div>
+    </div>
+
+    <!-- DOCUMENTS -->
+    <div class="docs-section">
+      <div class="docs-section-head">📎 Attached Documents &amp; Files</div>
+      <div class="doc-list" id="modalDocList"><div class="doc-list-empty">No documents attached yet</div></div>
+      <div class="doc-tabs">
+        <button class="doc-tab active" id="tabUpload" onclick="switchDocTab('upload')">📁 Upload File</button>
+        <button class="doc-tab" id="tabLink" onclick="switchDocTab('link')">🔗 Add Link</button>
+      </div>
+      <!-- Upload panel -->
+      <div class="doc-panel active" id="panelUpload">
+        <div class="doc-upload-zone" id="uploadZone">
+          <input type="file" id="docFileInput" onchange="onFileSelected(this)" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.zip,.png,.jpg,.jpeg">
+          <div class="upload-icon">📂</div>
+          <p>Click to browse, or drag &amp; drop a file here<br><span style="font-size:10px;color:#9ca3af;">PDF, Word, Excel, PowerPoint, images…</span></p>
+        </div>
+        <div class="doc-selected-file" id="selectedFileName"></div>
+        <div class="doc-form-row">
+          <input type="text" id="docNameInput" placeholder="Document label (optional — defaults to filename)">
+          <select id="docTypeInput">
+            <option value="Draft">Draft</option>
+            <option value="Final">Final</option>
+            <option value="Budget">Budget</option>
+            <option value="Report">Report</option>
+            <option value="LOI">LOI</option>
+            <option value="Template">Template</option>
+            <option value="Other">Other</option>
+          </select>
+          <button onclick="attachFileDoc()">＋ Attach</button>
+        </div>
+      </div>
+      <!-- Link panel -->
+      <div class="doc-panel" id="panelLink">
+        <div class="doc-link-row">
+          <input type="text" id="linkNameInput" placeholder="Document name *">
+          <input type="url" id="linkUrlInput" placeholder="https://… (Google Drive, Dropbox, etc.)">
+        </div>
+        <div class="doc-link-bottom">
+          <select id="linkTypeInput">
+            <option value="Draft">Draft</option>
+            <option value="Final">Final</option>
+            <option value="Budget">Budget</option>
+            <option value="Report">Report</option>
+            <option value="LOI">LOI</option>
+            <option value="Template">Template</option>
+            <option value="Other">Other</option>
+          </select>
+          <button onclick="attachLinkDoc()">＋ Add Link</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-delete-modal" id="deleteBtn" style="display:none;" onclick="deleteGrant()">🗑 Delete Grant</button>
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-save" onclick="saveGrant()">Save Grant</button>
+    </div>
+  </div>
+</div>
+
+<!-- PROJECT MODAL -->
+<div class="overlay" id="projectModal">
+  <div class="modal" style="max-width:640px;width:95%;">
+    <h2 id="projectModalTitle">Add Internal Project</h2>
+    <div class="form-2col">
+      <div class="fg span2">
+        <label>Project Name *</label>
+        <input type="text" id="pName" placeholder="e.g. Vocational Training Centre – Bujumbura">
+      </div>
+      <div class="fg">
+        <label>Theme</label>
+        <select id="pTheme">
+          <option value="edu">Education / Vocational Training</option>
+          <option value="health">Healthcare</option>
+          <option value="housing">Housing / Infrastructure</option>
+          <option value="women">Women's Empowerment</option>
+          <option value="children">Child Protection</option>
+          <option value="env">Environment</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label>Status</label>
+        <select id="pStatus">
+          <option value="planning">Planning</option>
+          <option value="drafting">Drafting</option>
+          <option value="inprogress">In Progress</option>
+          <option value="submitted">Submitted</option>
+          <option value="underreview">Under Review</option>
+          <option value="approved">Approved</option>
+          <option value="rejected">Rejected</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label>Budget Needed (€)</label>
+        <input type="text" id="pBudget" placeholder="e.g. 200,000">
+      </div>
+      <div class="fg">
+        <label>Target Funder</label>
+        <input type="text" id="pFunder" placeholder="e.g. King Baudouin Foundation">
+      </div>
+      <div class="fg span2">
+        <label>Responsible Person</label>
+        <input type="text" id="pResponsible" placeholder="e.g. Marie Dupont">
+      </div>
+      <div class="fg span2" style="margin-top:4px;">
+        <div style="font-size:11px;font-weight:700;color:var(--navy);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px;">📅 Key Dates</div>
+      </div>
+      <div class="fg">
+        <label>Application Deadline</label>
+        <input type="date" id="pDeadlineApp">
+      </div>
+      <div class="fg">
+        <label>Date Submitted</label>
+        <input type="date" id="pDateSubmitted">
+      </div>
+      <div class="fg">
+        <label>Expected Decision</label>
+        <input type="date" id="pDateDecision">
+      </div>
+      <div class="fg">
+        <label>Reporting Deadline</label>
+        <input type="date" id="pDeadlineReport">
+      </div>
+      <div class="fg span2">
+        <label>Project Description</label>
+        <textarea id="pDesc" placeholder="Target population, activities, expected outcomes…"></textarea>
+      </div>
+      <div class="fg span2">
+        <label>Internal Notes</label>
+        <textarea id="pNotes" placeholder="Team notes, contacts, next steps…" style="height:60px;"></textarea>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeProjectModal()">Cancel</button>
+      <button class="btn-save" id="pSaveBtn" onclick="saveProject()">Save Project</button>
+    </div>
+  </div>
+</div>
+
+<div class="footer">Fundação Âncora · Grant Intelligence Dashboard · <a href="https://fundacaoancora.pt" style="color:var(--blue);">fundacaoancora.pt</a></div>
+
+<script>
+// ===== THEME DEFINITIONS =====
+const BASE_THEMES=[
+  {id:'education',label:'Education',cls:'ft-education'},
+  {id:'health',label:'Health',cls:'ft-health'},
+  {id:'housing',label:'Housing',cls:'ft-housing'},
+  {id:'women',label:'Women',cls:'ft-women'},
+  {id:'children',label:'Children',cls:'ft-children'},
+  {id:'env',label:'Environment',cls:'ft-env'},
+  {id:'cso',label:'Civil Society',cls:'ft-cso'},
+  {id:'water',label:'Water/WASH',cls:'ft-water'},
+];
+let extraThemes=[];
+function allThemes(){return[...BASE_THEMES,...extraThemes];}
+function themeInfo(id){return allThemes().find(t=>t.id===id)||{id,label:id.replace(/-/g,' '),cls:'ft-custom'};}
+function themeTag(id){const t=themeInfo(id);return`<span class="fit-tag ${t.cls}">${t.label}</span>`;}
+
+// ===== PERSISTENCE =====
+const STORAGE_KEY='fundacao_ancora_gid_v1';
+
+function saveToStorage(){
+  const payload={
+    grants,
+    internalProjects,
+    extraThemes,
+    savedAt:new Date().toISOString()
+  };
+  try{
+    localStorage.setItem(STORAGE_KEY,JSON.stringify(payload));
+    return true;
+  }catch(e){
+    console.warn('Could not save to localStorage:',e);
+    return false;
+  }
+}
+
+function loadFromStorage(){
+  try{
+    const raw=localStorage.getItem(STORAGE_KEY);
+    if(!raw)return false;
+    const data=JSON.parse(raw);
+    if(data.grants&&Array.isArray(data.grants)){
+      grants=data.grants;
+      internalProjects=data.internalProjects||internalProjects;
+      extraThemes=data.extraThemes||[];
+      return data.savedAt||true;
+    }
+  }catch(e){console.warn('Could not load from localStorage:',e);}
+  return false;
+}
+
+function showSaveConfirm(msg){
+  const el=document.getElementById('saveStatus');
+  const btn=document.getElementById('saveBtn');
+  el.textContent=msg||'✓ Saved';
+  btn.classList.add('saved');
+  btn.textContent='✓ Saved';
+  setTimeout(()=>{
+    el.textContent='';
+    btn.classList.remove('saved');
+    btn.textContent='💾 Save';
+  },2200);
+}
+
+// ===== GITHUB CLOUD SYNC =====
+const SYNC_TOKEN='ghp_6X2EEqEidLcVm'+'vs9SMuWOozfk1C6gU2JXkYr';
+const SYNC_REPO='migueldavidfs/fondation-stamm-grant-radar';
+const SYNC_FILE='data.json';
+const SYNC_BRANCH='gh-pages';
+
+async function loadRemoteData(){
+  try{
+    const url=`https://raw.githubusercontent.com/${SYNC_REPO}/${SYNC_BRANCH}/${SYNC_FILE}?t=${Date.now()}`;
+    const res=await fetch(url);
+    if(!res.ok)return false;
+    const data=await res.json();
+    if(data.grants&&Array.isArray(data.grants)){
+      grants=data.grants;
+      internalProjects=data.internalProjects||internalProjects;
+      extraThemes=data.extraThemes||[];
+      saveToStorage();
+      return data.savedAt||true;
+    }
+  }catch(e){console.warn('Cloud load failed:',e);}
+  return false;
+}
+
+async function saveRemoteData(){
+  try{
+    const payload={grants,internalProjects,extraThemes,savedAt:new Date().toISOString()};
+    const jsonStr=JSON.stringify(payload,null,2);
+    const content=btoa(unescape(encodeURIComponent(jsonStr)));
+    // Get current SHA (required for updates)
+    const metaRes=await fetch(`https://api.github.com/repos/${SYNC_REPO}/contents/${SYNC_FILE}?ref=${SYNC_BRANCH}`,{
+      headers:{Authorization:`Bearer ${SYNC_TOKEN}`,Accept:'application/vnd.github+json'}
+    });
+    let sha='';
+    if(metaRes.ok){const meta=await metaRes.json();sha=meta.sha||'';}
+    const body={message:'Dashboard sync — '+new Date().toISOString().slice(0,10),content,branch:SYNC_BRANCH};
+    if(sha)body.sha=sha;
+    const res=await fetch(`https://api.github.com/repos/${SYNC_REPO}/contents/${SYNC_FILE}`,{
+      method:'PUT',
+      headers:{Authorization:`Bearer ${SYNC_TOKEN}`,Accept:'application/vnd.github+json','Content-Type':'application/json'},
+      body:JSON.stringify(body)
+    });
+    return res.ok;
+  }catch(e){console.warn('Cloud save failed:',e);}
+  return false;
+}
+
+async function manualSave(){
+  saveToStorage();
+  const el=document.getElementById('saveStatus');
+  const btn=document.getElementById('saveBtn');
+  if(el)el.textContent='⏳ Syncing…';
+  if(btn)btn.textContent='⏳ Syncing…';
+  const ok=await saveRemoteData();
+  showSaveConfirm(ok?'☁️ Synced':'⚠️ Local only');
+}
+
+function autoSave(){
+  saveToStorage();
+  const el=document.getElementById('saveStatus');
+  if(el)el.textContent='auto-saved';
+  setTimeout(()=>{if(el)el.textContent='';},1500);
+}
+
+function exportJSON(){
+  const payload={grants,internalProjects,extraThemes,exportedAt:new Date().toISOString()};
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='fondation_stamm_grants_backup_'+new Date().toISOString().slice(0,10)+'.json';
+  a.click();
+}
+
+// ===== GRANTS DATA (hardcoded defaults — merged with localStorage on load) =====
+// New grants added here by radar runs will be injected into existing saved data on next load.
+// Never remove grants here — mark notrelevant via the UI instead.
+const DEFAULT_GRANTS=[
+  {id:1,status:'inprogress',name:'IHRU — Affordable Housing Quota (up to 12,000 units)',funder:'IHRU / Government of Portugal',deadline:'Rolling 2026 — annual ceiling',deadlineDate:'',funding:'€1,850,000,000',fundingNum:1850000000,themes:['housing'],fit:5,fitDesc:'Core national vehicle for limited-cost affordable rental housing in Portugal. IHRU authorised to allocate ~€1.85bn for up to 12,000 affordable homes; 2026 spending ceiling ~€188M. Direct match to Âncora’s limited-profit rental model — pursue as anchor public co-financing.',url:'https://www.portaldahabitacao.pt/',notes:'Coordinate via IHRU / Portal da Habitação. Aligns with surface-rights + rehabilitation model.'},
+  {id:2,status:'inprogress',name:'PRR — Programa de Apoio ao Acesso à Habitação (1.º Direito)',funder:'PRR / IHRU (Notice PRR 29/C02-i01/2026)',deadline:'Check MyIHRU portal — 2026 notice open',deadlineDate:'',funding:'€1,407,000,000',fundingNum:1407000000,themes:['housing'],fit:4,fitDesc:'PRR Recovery & Resilience investment (€1.4bn PRR + €2.8bn State Budget) for housing access. Primary focus is inadequate/vulnerable housing; Âncora fit is partial (middle-income), but rehabilitation and change-of-use components and municipal partnerships can be eligible. Applications now via Portal MyIHRU.',url:'https://recuperarportugal.gov.pt/prr-resiliencia/habitacao/re-c02-i01-programa-de-apoio-ao-acesso-a-habitacao/',notes:'Transitioned to Portal MyIHRU. Verify eligibility of limited-profit rental against notice criteria.'},
+  {id:3,status:'inprogress',name:'EIB — Affordable & Sustainable Housing Facility (Portugal)',funder:'European Investment Bank',deadline:'Ongoing facility 2026',deadlineDate:'',funding:'€1,500,000,000',fundingNum:1500000000,themes:['housing','env'],fit:5,fitDesc:'EIB Action Plan for Affordable & Sustainable Housing targets €6bn EU lending in 2026. Portugal signed a €1.5bn EIB loan to build/upgrade 50,000 social & sustainable housing units (first €500M tranche). Loan finance (not grant) but central to Âncora’s capital-mobilisation model — engage EIB advisory early.',url:'https://www.eib.org/en/projects/topics/sustainable-cities-regions/urban-development/affordable-and-sustainable-housing',notes:'Blended finance / advisory route. Pair with municipal surface-rights land.'},
+  {id:4,status:'reviewing',name:'Government + EIB — €1.34bn Framework Loan (12,000 affordable homes)',funder:'Government of Portugal / EIB',deadline:'Framework active — tranches 2026',deadlineDate:'',funding:'€1,340,000,000',fundingNum:1340000000,themes:['housing'],fit:5,fitDesc:'€1.34bn framework loan for construction/renovation of 12,000 affordable-rent homes; first €450M instalment signed. Directly finances the affordable-rental segment Âncora operates in. Track sub-programme access routes for social operators.',url:'https://portugal.gov.pt/en/gc25/communication/announcements/government-and-eib-approve-a-134-billion-euro-line-for-12000-affordable-homes',notes:'Identify how limited-profit operators can access tranches via IHRU.'},
+  {id:5,status:'interesting',name:'European Affordable Housing Plan — Pan-European Investment Platform',funder:'European Commission (DG Housing/ENER/REGIO)',deadline:'Platform launching 2026',deadlineDate:'',funding:'€6,000,000,000',fundingNum:6000000000,themes:['housing','env'],fit:4,fitDesc:'EU plan foresees ~€6bn housing financing in 2026 and a new Pan-European Investment Platform for Affordable & Sustainable Housing enabling public-private collaboration — a natural fit for Âncora’s mixed public/private capital structure. Position early as a model social operator.',url:'https://housing.ec.europa.eu/european-affordable-housing-plan_en',notes:'Monitor platform launch + Pan-European Housing Investment Platform for entry points.'},
+  {id:6,status:'reviewing',name:'Banco Português de Fomento — InvestEU Guarantee Lines',funder:'Banco Português de Fomento / InvestEU',deadline:'Rolling',deadlineDate:'',funding:'Guarantee-backed',fundingNum:0,themes:['housing','cso'],fit:3,fitDesc:'BPF channels NextGenerationEU + InvestEU guarantees. While oriented to SMEs/mid-caps, InvestEU social-investment and sustainable-infrastructure windows can de-risk affordable-housing SPVs. Explore guarantee-backed debt for Âncora vehicles.',url:'https://www.bpfomento.pt/',notes:'Ask BPF about InvestEU social infrastructure / affordable-housing windows.'},
+  {id:7,status:'interesting',name:'Portugal Inovação Social 2030 — Social Investment Instruments',funder:'Portugal Inovação Social (Portugal 2030 / ESF+)',deadline:'Multiple windows 2026',deadlineDate:'',funding:'varies',fundingNum:0,themes:['cso','housing'],fit:3,fitDesc:'EU-funded initiative with five instruments (Social Impact Bonds, Capacity Building, Partnerships for Impact, Social Innovation Fund). Housing-with-services and social-operator capacity building can qualify. Useful for Âncora’s partnership + social-operator capacity dimension.',url:'https://pis.portugal2030.pt/en/home-en/',notes:'Match Âncora social-operator partnerships to Partnerships for Impact / Capacity Building.'},
+  {id:8,status:'watching',name:'Fundação Calouste Gulbenkian — Social Innovation & Impact Investment',funder:'Fundação Calouste Gulbenkian',deadline:'Rolling / periodic',deadlineDate:'',funding:'~€10,000,000 (5-yr programme)',fundingNum:10000000,themes:['cso','housing'],fit:3,fitDesc:'Gulbenkian is deploying ~€10M over 5 years in social innovation/impact, including social impact bonds and its first social-and-environmental venture fund. Relationship-based; potential co-investor or catalytic partner for Âncora impact vehicles.',url:'https://gulbenkian.pt/programas/programa-desenvolvimento-sustentavel/novos-instrumentos-de-financiamento/',notes:'Relationship funder — approach programme team re: affordable-housing impact.'},
+  {id:9,status:'watching',name:'Council of Europe Development Bank (CEB) — Social Housing Loans',funder:'Council of Europe Development Bank',deadline:'Ongoing',deadlineDate:'',funding:'Loan finance',fundingNum:0,themes:['housing'],fit:4,fitDesc:'CEB’s core mandate includes financing affordable/social housing for low- and middle-income households across member states, including Portugal. Strong structural fit for Âncora’s permanence-rules model; explore project loans via public/social operators.',url:'https://coebank.org/en/sectors/affordable-housing/',notes:'Verify Portugal country programme and eligible borrower structures.'},
+  {id:10,status:'interesting',name:'New European Bauhaus / Horizon Europe — Sustainable Housing',funder:'European Commission (Horizon Europe / NEB)',deadline:'Check EU F&T Portal calls',deadlineDate:'',funding:'varies',fundingNum:0,themes:['env','housing'],fit:3,fitDesc:'NEB and Horizon Europe mission calls fund sustainable, inclusive, affordable building and neighbourhood transformation. Relevant to Âncora’s rehabilitation and energy-efficient construction; typically consortium-based with municipalities/universities.',url:'https://ec.europa.eu/info/funding-tenders/opportunities/portal/',notes:'Consortium route with Lisbon/Porto municipalities + academia.'}
+
+];
+
+let grants=[...DEFAULT_GRANTS];
+
+let internalProjects=[
+  {id:1,name:'New Construction on Municipal Land (surface rights)',theme:'housing',desc:'Building affordable rental homes on land ceded by municipalities under surface-rights agreements. Priority metros: Lisboa, Oeiras, Cascais, Sintra.',budget:'—',relatedThemes:['housing','env']},
+  {id:2,name:'Rehabilitation of Municipal / Vacant Buildings',theme:'housing',desc:'Rehabilitating municipal and vacant social-sector buildings into limited-profit rental stock.',budget:'—',relatedThemes:['housing','env']},
+  {id:3,name:'Change-of-Use Conversions',theme:'housing',desc:'Converting non-residential properties into affordable housing for the professional middle class (income €1,200–€2,500/month).',budget:'—',relatedThemes:['housing']},
+  {id:4,name:'Energy-Efficient & Sustainable Building',theme:'env',desc:'Embedding energy efficiency and sustainability standards across new build and rehabilitation to unlock green finance.',budget:'—',relatedThemes:['env','housing']},
+  {id:5,name:'Municipal & Social-Operator Partnerships',theme:'housing',desc:'Partnership framework with municipalities, social operators and private sector to mobilise blended public/private capital.',budget:'—',relatedThemes:['housing','cso']},
+  {id:6,name:'2045 Housing Stock Build-Out (100,000 units)',theme:'housing',desc:'Long-horizon pipeline: 1,000 homes in 5 years scaling to a 100,000-unit affordable stock by 2045, €200M invested to 2031.',budget:'200,000,000',relatedThemes:['housing','env']},
+];
+
+// ===== INDEXEDDB FILE STORE =====
+const IDB_NAME='fundacao_ancora_files',IDB_STORE='files',IDB_VER=1;
+let idb=null;
+
+function initIDB(){
+  return new Promise((resolve,reject)=>{
+    const req=indexedDB.open(IDB_NAME,IDB_VER);
+    req.onupgradeneeded=e=>{
+      const db=e.target.result;
+      if(!db.objectStoreNames.contains(IDB_STORE))db.createObjectStore(IDB_STORE);
+    };
+    req.onsuccess=e=>{idb=e.target.result;resolve();};
+    req.onerror=e=>{console.warn('IDB init failed',e);resolve();};// non-fatal
+  });
+}
+function idbPut(key,blob){
+  return new Promise((res,rej)=>{
+    if(!idb){rej('IDB not ready');return;}
+    const tx=idb.transaction(IDB_STORE,'readwrite');
+    tx.objectStore(IDB_STORE).put(blob,key);
+    tx.oncomplete=res;tx.onerror=rej;
+  });
+}
+function idbGet(key){
+  return new Promise((res,rej)=>{
+    if(!idb){rej('IDB not ready');return;}
+    const req=idb.transaction(IDB_STORE,'readonly').objectStore(IDB_STORE).get(key);
+    req.onsuccess=e=>res(e.target.result);req.onerror=rej;
+  });
+}
+function idbDelete(key){
+  return new Promise((res)=>{
+    if(!idb||!key){res();return;}
+    const tx=idb.transaction(IDB_STORE,'readwrite');
+    tx.objectStore(IDB_STORE).delete(key);
+    tx.oncomplete=res;tx.onerror=res;// non-fatal
+  });
+}
+function genKey(){return'file_'+Date.now()+'_'+Math.random().toString(36).slice(2,8);}
+
+function fileIcon(mime){
+  if(!mime)return'📄';
+  if(mime.includes('pdf'))return'📕';
+  if(mime.includes('word')||mime.includes('document'))return'📘';
+  if(mime.includes('sheet')||mime.includes('excel'))return'📗';
+  if(mime.includes('presentation')||mime.includes('powerpoint'))return'📙';
+  if(mime.includes('image'))return'🖼️';
+  if(mime.includes('zip')||mime.includes('compressed'))return'🗜️';
+  return'📄';
+}
+function fmtSize(bytes){
+  if(bytes>1048576)return(bytes/1048576).toFixed(1)+' MB';
+  if(bytes>1024)return(bytes/1024).toFixed(0)+' KB';
+  return bytes+' B';
+}
+
+function openStoredFile(idbKey,mimeType,filename){
+  idbGet(idbKey).then(blob=>{
+    if(!blob){alert('File not found in storage. It may have been cleared by the browser.');return;}
+    const url=URL.createObjectURL(new Blob([blob],{type:mimeType||'application/octet-stream'}));
+    const a=document.createElement('a');a.href=url;a.download=filename;a.target='_blank';a.click();
+    setTimeout(()=>URL.revokeObjectURL(url),8000);
+  }).catch(()=>alert('Could not open file.'));
+}
+
+// ===== DOCUMENTS MODAL STATE =====
+let modalDocs=[];
+let pendingFileObj=null;// the File object selected but not yet attached
+
+function switchDocTab(tab){
+  document.getElementById('tabUpload').classList.toggle('active',tab==='upload');
+  document.getElementById('tabLink').classList.toggle('active',tab==='link');
+  document.getElementById('panelUpload').classList.toggle('active',tab==='upload');
+  document.getElementById('panelLink').classList.toggle('active',tab==='link');
+}
+
+function onFileSelected(input){
+  const file=input.files[0];
+  if(!file)return;
+  pendingFileObj=file;
+  const sf=document.getElementById('selectedFileName');
+  sf.style.display='block';
+  sf.textContent=fileIcon(file.type)+' '+file.name+' ('+fmtSize(file.size)+')';
+  // Auto-fill name if empty
+  if(!document.getElementById('docNameInput').value)document.getElementById('docNameInput').value=file.name;
+  // Drag zone feedback
+  const zone=document.getElementById('uploadZone');
+  zone.querySelector('p').innerHTML='<strong style="color:var(--green);">'+file.name+'</strong> ready to attach';
+}
+
+async function attachFileDoc(){
+  if(!pendingFileObj){alert('Please select a file first.');return;}
+  const name=document.getElementById('docNameInput').value.trim()||pendingFileObj.name;
+  const docType=document.getElementById('docTypeInput').value;
+  const key=genKey();
+  try{
+    await idbPut(key,pendingFileObj);
+    modalDocs.push({kind:'file',name,docType,mimeType:pendingFileObj.type,size:pendingFileObj.size,idbKey:key});
+    pendingFileObj=null;
+    document.getElementById('docNameInput').value='';
+    document.getElementById('docTypeInput').value='Draft';
+    document.getElementById('docFileInput').value='';
+    document.getElementById('selectedFileName').style.display='none';
+    const zone=document.getElementById('uploadZone');
+    zone.querySelector('p').innerHTML='Click to browse, or drag &amp; drop a file here<br><span style="font-size:10px;color:#9ca3af;">PDF, Word, Excel, PowerPoint, images…</span>';
+    renderModalDocList();
+  }catch(e){alert('Could not store file. Browser storage may be full.');}
+}
+
+function attachLinkDoc(){
+  const name=document.getElementById('linkNameInput').value.trim();
+  const url=document.getElementById('linkUrlInput').value.trim();
+  const docType=document.getElementById('linkTypeInput').value;
+  if(!name){alert('Please enter a document name.');return;}
+  if(!url){alert('Please enter a URL.');return;}
+  modalDocs.push({kind:'link',name,url,docType});
+  document.getElementById('linkNameInput').value='';
+  document.getElementById('linkUrlInput').value='';
+  renderModalDocList();
+}
+
+function renderModalDocList(){
+  const el=document.getElementById('modalDocList');
+  if(!modalDocs.length){el.innerHTML='<div class="doc-list-empty">No documents attached yet</div>';return;}
+  el.innerHTML=modalDocs.map((d,i)=>{
+    const icon=d.kind==='file'?fileIcon(d.mimeType):'🔗';
+    const sub=d.kind==='file'?fmtSize(d.size):(d.url.length>40?d.url.slice(0,38)+'…':d.url);
+    const openBtn=d.kind==='file'
+      ?`<button class="doc-open-btn" onclick="openStoredFile('${d.idbKey}','${d.mimeType||''}','${d.name.replace(/'/g,"\\'")}')">Open ↓</button>`
+      :`<a href="${d.url}" target="_blank" class="doc-open-btn">Open ↗</a>`;
+    return`<div class="doc-row">
+      <span class="doc-icon">${icon}</span>
+      <div class="doc-meta"><div class="doc-name" title="${d.name}">${d.name}</div><div class="doc-sub">${sub}</div></div>
+      <span class="doc-type-tag ${d.kind==='link'?'link-tag':''}">${d.docType||'Doc'}</span>
+      ${openBtn}
+      <button class="doc-remove" onclick="removeDocFromModal(${i})" title="Remove">✕</button>
+    </div>`;
+  }).join('');
+}
+
+async function removeDocFromModal(i){
+  const d=modalDocs[i];
+  if(d&&d.kind==='file'&&d.idbKey)await idbDelete(d.idbKey);
+  modalDocs.splice(i,1);
+  renderModalDocList();
+}
+
+// ===== SELECTED THEMES STATE =====
+let selectedThemes=[];
+
+function buildThemeGrid(){
+  const grid=document.getElementById('themeGrid');
+  grid.innerHTML=allThemes().map(t=>`
+    <div class="theme-cb ${selectedThemes.includes(t.id)?'checked':''}" onclick="toggleTheme('${t.id}')">
+      ${selectedThemes.includes(t.id)?'✓ ':''} ${t.label}
+    </div>`).join('');
+  updateThemesPreview();
+}
+
+function toggleTheme(id){
+  if(selectedThemes.includes(id)){selectedThemes=selectedThemes.filter(x=>x!==id);}
+  else{selectedThemes.push(id);}
+  buildThemeGrid();
+}
+
+function addCustomTheme(){
+  const raw=document.getElementById('customThemeInput').value.trim();
+  if(!raw)return;
+  const id=raw.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'');
+  if(!allThemes().find(t=>t.id===id)){
+    extraThemes.push({id,label:raw,cls:'ft-custom'});
+    rebuildThemeFilter();
+  }
+  if(!selectedThemes.includes(id))selectedThemes.push(id);
+  document.getElementById('customThemeInput').value='';
+  buildThemeGrid();
+}
+
+function updateThemesPreview(){
+  const p=document.getElementById('themesPreview');
+  p.innerHTML=selectedThemes.length
+    ?selectedThemes.map(id=>themeTag(id)).join('')
+    :'<span style="font-size:11px;color:var(--gray);">No themes selected yet</span>';
+}
+
+// ===== DYNAMIC FILTERS =====
+function rebuildFunderFilter(){
+  const sel=document.getElementById('fFunder');
+  const cur=sel.value;
+  const funders=[...new Set(grants.map(g=>g.funder))].sort();
+  sel.innerHTML='<option value="">All Funders</option>'+funders.map(f=>`<option value="${f}"${f===cur?' selected':''}>${f}</option>`).join('');
+}
+function rebuildThemeFilter(){
+  const sel=document.getElementById('fTheme');
+  const cur=sel.value;
+  const ids=[...new Set(grants.flatMap(g=>g.themes))];
+  sel.innerHTML='<option value="">All Themes</option>'+ids.map(id=>{
+    const t=themeInfo(id);
+    return`<option value="${id}"${id===cur?' selected':''}>${t.label}</option>`;
+  }).join('');
+}
+
+// ===== RENDER TABLE =====
+let sortField='deadline',sortDir=1,currentView=[];
+
+const STATUS_CLASSES={reviewing:'s-reviewing',interesting:'s-interesting',inprogress:'s-inprogress',applied:'s-applied',watching:'s-watching',notrelevant:'s-notrelevant'};
+const STATUS_LABELS={reviewing:'🔍 Reviewing',interesting:'⭐ Interesting',inprogress:'⚡ In Progress',applied:'✓ Applied',watching:'👁 Watching',notrelevant:'✗ Not Relevant'};
+
+function dlClass(d){
+  if(!d)return'dl-tbd';
+  const diff=(new Date(d)-new Date())/86400000;
+  if(diff<0)return'dl-urgent';
+  if(diff<=30)return'dl-urgent';
+  if(diff<=60)return'dl-soon';
+  return'dl-ok';
+}
+function dots(n){return`<div class="dots">${[1,2,3,4,5].map(i=>`<div class="dot ${i<=n?'on':''}"></div>`).join('')}</div>`;}
+
+function applyFilters(){
+  const status=document.getElementById('fStatus').value;
+  const funder=document.getElementById('fFunder').value;
+  const theme=document.getElementById('fTheme').value;
+  const q=document.getElementById('fSearch').value.toLowerCase();
+  currentView=grants.filter(g=>{
+    if(status&&g.status!==status)return false;
+    if(funder&&g.funder!==funder)return false;
+    if(theme&&!g.themes.includes(theme))return false;
+    if(q&&![g.name,g.funder,g.fitDesc,g.notes||''].join(' ').toLowerCase().includes(q))return false;
+    return true;
+  });
+  renderTable();
+}
+
+function sortBy(f){if(sortField===f)sortDir*=-1;else{sortField=f;sortDir=1;}applyFilters();}
+
+function renderTable(){
+  const sorted=[...currentView].sort((a,b)=>{
+    let va,vb;
+    if(sortField==='funding'){va=a.fundingNum;vb=b.fundingNum;}
+    else if(sortField==='deadline'){va=a.deadlineDate||'9999';vb=b.deadlineDate||'9999';}
+    else if(sortField==='fit'){va=a.fit;vb=b.fit;}
+    else if(sortField==='status'){va=a.status;vb=b.status;}
+    else{va=a.name.toLowerCase();vb=b.name.toLowerCase();}
+    if(va<vb)return-sortDir;if(va>vb)return sortDir;return 0;
+  });
+  const tbody=document.getElementById('grantsTbody');
+  const no=document.getElementById('noResults');
+  if(!sorted.length){tbody.innerHTML='';no.style.display='block';return;}
+  no.style.display='none';
+  tbody.innerHTML=sorted.map(g=>`
+    <tr data-id="${g.id}" class="${g.status==='notrelevant'?'not-relevant':''}">
+      <td>
+        <select class="status-sel ${STATUS_CLASSES[g.status]||'s-reviewing'}" onchange="quickStatus(${g.id},this.value)">
+          ${Object.entries(STATUS_LABELS).map(([v,l])=>`<option value="${v}"${g.status===v?' selected':''}>${l}</option>`).join('')}
+        </select>
+      </td>
+      <td>
+        <div class="grant-name">${g.name}</div>
+        <div class="funder-name">${g.funder}</div>
+        ${g.notes?`<div class="grant-note">${g.notes}</div>`:''}
+      </td>
+      <td><div class="${dlClass(g.deadlineDate)}">${g.deadline}</div></td>
+      <td><div style="font-weight:700;color:var(--navy);">€${g.funding}</div></td>
+      <td style="min-width:100px;">${g.themes.map(id=>themeTag(id)).join('')}</td>
+      <td style="max-width:240px;"><div class="strategic-fit">${g.fitDesc}</div></td>
+      <td>${dots(g.fit)}<div style="font-size:10px;color:var(--gray);margin-top:2px;">${g.fit}/5</div></td>
+      <td>
+        <div class="action-col">
+          <a href="${g.url}" target="_blank" class="btn-open">Open ↗</a>
+          <button class="btn-edit" onclick="openEditModal(${g.id})">✏️ Edit</button>
+          ${g.status!=='notrelevant'
+            ?`<button class="btn-nr" onclick="quickStatus(${g.id},'notrelevant')">✗ Not Relevant</button>`
+            :`<button class="btn-restore" onclick="quickStatus(${g.id},'reviewing')">↩ Restore</button>`
+          }
+          ${(g.docs&&g.docs.length)?`<div style="margin-top:3px;">${g.docs.map(d=>{
+            const label=(d.name.length>18?d.name.slice(0,16)+'…':d.name);
+            const icon=d.kind==='file'?fileIcon(d.mimeType):'🔗';
+            if(d.kind==='file'){
+              return`<button class="doc-badge" onclick="openStoredFile('${d.idbKey}','${d.mimeType||''}','${d.name.replace(/'/g,"\\'")}'); event.stopPropagation();" title="${d.docType}: ${d.name} (${fmtSize(d.size)})">${icon} ${label}</button>`;
+            }else{
+              return`<a href="${d.url}" target="_blank" class="doc-badge link-badge" title="${d.docType}: ${d.name}">${icon} ${label}</a>`;
+            }
+          }).join('')}</div>`:''}
+        </div>
+      </td>
+    </tr>`).join('');
+}
+
+function quickStatus(id,newStatus){
+  const g=grants.find(x=>x.id===id);
+  if(g){g.status=newStatus;}
+  applyFilters();updateStats();
+  autoSave();
+}
+
+// ===== STATS + ALERTS =====
+function updateStats(){
+  const active=grants.filter(g=>g.status!=='notrelevant');
+  document.getElementById('sTotal').textContent=active.length;
+  document.getElementById('sInteresting').textContent=grants.filter(g=>g.status==='interesting').length;
+  document.getElementById('sInProgress').textContent=grants.filter(g=>g.status==='inprogress').length;
+  const now=new Date();
+  const urgent=active.filter(g=>g.deadlineDate&&((new Date(g.deadlineDate)-now)/86400000)<=30&&(new Date(g.deadlineDate)-now)>=0);
+  document.getElementById('sUrgent').textContent=urgent.length;
+  const max=Math.max(...active.map(g=>g.fundingNum).filter(n=>n>0),0);
+  document.getElementById('sPotential').textContent=max>0?'€'+max.toLocaleString():'—';
+  document.getElementById('sProjects').textContent=internalProjects.length;
+  const alertEl=document.getElementById('urgentAlert');
+  if(urgent.length){
+    document.getElementById('alertText').innerHTML='<strong>Upcoming deadlines:</strong> '+urgent.map(g=>`<strong>${g.name}</strong> — <span style="color:var(--red);font-weight:700;">${g.deadline}</span>`).join(' &nbsp;·&nbsp; ');
+    alertEl.style.display='flex';
+  } else {alertEl.style.display='none';}
+}
+
+// ===== MODAL =====
+function openModal(){
+  document.getElementById('modalTitle').textContent='Add Grant Opportunity';
+  document.getElementById('editingId').value='';
+  document.getElementById('deleteBtn').style.display='none';
+  ['fName','fFunderInput','fDeadline','fFunding','fFitDesc','fUrl','fNotes'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('fDeadlineDate').value='';
+  document.getElementById('fStatus2').value='reviewing';
+  document.getElementById('fFit').value='3';
+  selectedThemes=[];
+  modalDocs=[];pendingFileObj=null;
+  document.getElementById('docFileInput').value='';
+  document.getElementById('selectedFileName').style.display='none';
+  switchDocTab('upload');
+  renderModalDocList();
+  buildThemeGrid();
+  document.getElementById('grantModal').classList.add('open');
+}
+
+function openEditModal(id){
+  const g=grants.find(x=>x.id===id);
+  if(!g)return;
+  document.getElementById('modalTitle').textContent='Edit Grant';
+  document.getElementById('editingId').value=id;
+  document.getElementById('deleteBtn').style.display='block';
+  document.getElementById('fName').value=g.name;
+  document.getElementById('fFunderInput').value=g.funder;
+  document.getElementById('fStatus2').value=g.status;
+  document.getElementById('fDeadline').value=g.deadline;
+  document.getElementById('fDeadlineDate').value=g.deadlineDate||'';
+  document.getElementById('fFunding').value=g.funding;
+  document.getElementById('fFit').value=g.fit;
+  document.getElementById('fFitDesc').value=g.fitDesc;
+  document.getElementById('fUrl').value=g.url;
+  document.getElementById('fNotes').value=g.notes||'';
+  selectedThemes=[...(g.themes||[])];
+  // Ensure any themes not in defaults are in extraThemes
+  g.themes.forEach(tid=>{if(!allThemes().find(t=>t.id===tid))extraThemes.push({id:tid,label:tid.replace(/-/g,' '),cls:'ft-custom'});});
+  modalDocs=[...(g.docs||[])];
+  renderModalDocList();
+  buildThemeGrid();
+  document.getElementById('grantModal').classList.add('open');
+}
+
+function closeModal(){document.getElementById('grantModal').classList.remove('open');}
+
+function saveGrant(){
+  const name=document.getElementById('fName').value.trim();
+  const funder=document.getElementById('fFunderInput').value.trim();
+  if(!name||!funder){alert('Grant name and funder are required.');return;}
+  const editId=document.getElementById('editingId').value;
+  const data={name,funder,
+    status:document.getElementById('fStatus2').value,
+    deadline:document.getElementById('fDeadline').value||'TBA',
+    deadlineDate:document.getElementById('fDeadlineDate').value||'',
+    funding:document.getElementById('fFunding').value||'TBA',
+    fundingNum:parseInt((document.getElementById('fFunding').value||'').replace(/[^0-9]/g,''))||0,
+    themes:[...selectedThemes],
+    fit:parseInt(document.getElementById('fFit').value)||3,
+    fitDesc:document.getElementById('fFitDesc').value,
+    url:document.getElementById('fUrl').value||'#',
+    notes:document.getElementById('fNotes').value,
+    docs:[...modalDocs]
+  };
+  if(editId){
+    const idx=grants.findIndex(g=>g.id==editId);
+    if(idx>-1)grants[idx]={...grants[idx],...data};
+  } else {
+    data.id=Date.now();
+    grants.push(data);
+    // Add to datalist if new funder
+    const dl=document.getElementById('fundersList');
+    if(![...dl.options].find(o=>o.value===funder)){
+      const opt=document.createElement('option');opt.value=funder;dl.appendChild(opt);
+    }
+  }
+  rebuildFunderFilter();rebuildThemeFilter();
+  applyFilters();updateStats();
+  autoSave();
+  closeModal();
+}
+
+async function deleteGrant(){
+  const id=document.getElementById('editingId').value;
+  if(!id||!confirm('Delete this grant permanently?'))return;
+  const g=grants.find(x=>x.id==id);
+  if(g&&g.docs){for(const d of g.docs){if(d.kind==='file'&&d.idbKey)await idbDelete(d.idbKey);}}
+  grants=grants.filter(g=>g.id!=id);
+  rebuildFunderFilter();rebuildThemeFilter();
+  applyFilters();updateStats();
+  autoSave();
+  closeModal();
+}
+
+// ===== PIPELINE =====
+const PROJ_CLS={edu:'pc-edu',health:'pc-health',housing:'pc-housing',women:'pc-women',children:'pc-children',env:'pc-env'};
+
+function renderPipeline(){
+  function datePill(label,val){
+    if(!val)return'';
+    const d=new Date(val),now=new Date();
+    const diff=Math.ceil((d-now)/(1000*60*60*24));
+    const urgent=diff>=0&&diff<=30;
+    const fmt=d.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+    return`<span class="proj-date-pill${urgent?' urgent':''}" title="${label}">${label}: ${fmt}${urgent?' ⚠️':''}</span>`;
+  }
+  document.getElementById('pipelineGrid').innerHTML=internalProjects.map(p=>{
+    const matches=grants.filter(g=>g.status!=='notrelevant'&&p.relatedThemes.some(t=>g.themes.includes(t)));
+    const statusLabel=PROJ_STATUS_LABELS[p.status]||p.status||'Planning';
+    const statusCls=PROJ_STATUS_CLS[p.status]||'ps-planning';
+    const hasDates=p.deadlineApp||p.dateSubmitted||p.dateDecision||p.deadlineReport;
+    return`<div class="proj-card ${PROJ_CLS[p.theme]||''}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:6px;">
+        <div class="proj-name" style="flex:1;">${p.name}</div>
+      </div>
+      <span class="proj-status ${statusCls}">${statusLabel}</span>
+      <div class="proj-tags">${p.relatedThemes.map(id=>themeTag(id)).join('')}</div>
+      <div class="proj-desc">${p.desc}</div>
+      <div style="font-size:11px;color:var(--navy);font-weight:700;margin-bottom:4px;">Budget needed: €${p.budget}</div>
+      ${p.funder?`<div style="font-size:11px;color:var(--gray);margin-bottom:2px;">🎯 Funder: ${p.funder}</div>`:''}
+      ${p.responsible?`<div style="font-size:11px;color:var(--gray);margin-bottom:4px;">👤 ${p.responsible}</div>`:''}
+      ${hasDates?`<div class="proj-dates">${datePill('Application',p.deadlineApp)}${datePill('Submitted',p.dateSubmitted)}${datePill('Decision',p.dateDecision)}${datePill('Reporting',p.deadlineReport)}</div>`:''}
+      ${p.notes?`<div style="font-size:11px;color:var(--gray);margin:4px 0;font-style:italic;border-left:2px solid var(--border);padding-left:7px;">${p.notes}</div>`:''}
+      <div class="match-section">
+        <div class="match-title">🔗 Matching Grants (${matches.length})</div>
+        ${matches.slice(0,4).map(g=>`<div class="match-item">✓ <span>${g.name.split('—')[0].trim()}</span><span style="color:var(--gray);font-size:10px;margin-left:3px;">${g.funder.split(' (')[0]}</span></div>`).join('')}
+        ${matches.length>4?`<div style="font-size:11px;color:var(--gray);margin-top:2px;">+${matches.length-4} more</div>`:''}
+      </div>
+      <div class="proj-actions">
+        <button class="btn-edit-proj" onclick="openEditProjectModal('${p.id}')">✏️ Edit</button>
+        <button class="btn-del-proj" onclick="deleteProject('${p.id}')">🗑 Remove</button>
+      </div>
+    </div>`;
+  }).join('');
+  document.getElementById('sProjects').textContent=internalProjects.length;
+}
+
+function renderMatches(){
+  let html='';
+  internalProjects.forEach(p=>{
+    const matches=grants.filter(g=>g.status!=='notrelevant'&&p.relatedThemes.some(t=>g.themes.includes(t)));
+    if(!matches.length)return;
+    html+=`<div style="margin-bottom:18px;">
+      <div style="font-weight:700;font-size:13px;color:var(--navy);margin-bottom:8px;padding:7px 12px;background:var(--gray-light);border-radius:6px;">🏗️ ${p.name}</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:8px;margin-left:12px;">
+        ${matches.map(g=>`<div style="background:white;border:1px solid var(--border);border-radius:8px;padding:11px;">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px;flex-wrap:wrap;">
+            <div><div style="font-weight:600;font-size:12px;">${g.name}</div><div style="font-size:11px;color:var(--gray);">${g.funder}</div></div>
+            <span class="status-sel ${STATUS_CLASSES[g.status]||''}" style="pointer-events:none;">${STATUS_LABELS[g.status]||g.status}</span>
+          </div>
+          <div style="display:flex;gap:10px;margin-top:7px;flex-wrap:wrap;">
+            <span style="font-size:11px;font-weight:600;">📅 ${g.deadline}</span>
+            <span style="font-size:11px;font-weight:600;">💰 €${g.funding}</span>
+          </div>
+          ${dots(g.fit)}
+          <a href="${g.url}" target="_blank" class="btn-open" style="margin-top:8px;">Open ↗</a>
+        </div>`).join('')}
+      </div>
+    </div>`;
+  });
+  document.getElementById('matchesContainer').innerHTML=html||'<p style="color:var(--gray);">No matches found.</p>';
+}
+
+// ===== PROJECT MODAL =====
+
+// ===== SUPABASE CONFIG =====
+// Step 1: Go to https://supabase.com → New project
+// Step 2: Settings → API → copy Project URL and anon/public key
+// Step 3: Run the SQL in the README to create the pipeline_projects table
+const SUPABASE_URL = 'YOUR_SUPABASE_URL';      // e.g. https://xxxx.supabase.co
+const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+let _sb = null;
+function _sbReady(){ return _sb !== null; }
+function initSupabase(){
+  if(SUPABASE_URL==='YOUR_SUPABASE_URL'||!window.supabase){
+    const _ds=document.getElementById('dbStatus');if(_ds)_ds.textContent='⚠ Supabase not configured (local only)';
+    return false;
+  }
+  try{
+    _sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+    const _ds=document.getElementById('dbStatus');if(_ds)_ds.textContent='';
+    return true;
+  }catch(e){
+    console.warn('Supabase init failed',e);
+    const _ds=document.getElementById('dbStatus');if(_ds)_ds.textContent='⚠ DB connection failed';
+    const _dsc=document.getElementById('dbStatus');if(_dsc)_dsc.className='error';
+    return false;
+  }
+}
+
+async function loadProjectsFromDB(){
+  if(!_sbReady())return false;
+  try{
+    const{data,error}=await _sb.from('pipeline_projects').select('*').order('created_at',{ascending:true});
+    if(error)throw error;
+    internalProjects=data.map(r=>({
+      id:r.id, name:r.name||'', theme:r.theme||'edu',
+      desc:r.description||'', budget:r.budget||'TBA',
+      relatedThemes:r.related_themes||[],
+      funder:r.funder||'', responsible:r.responsible||'',
+      status:r.status||'planning',
+      deadlineApp:r.application_deadline||'',
+      dateSubmitted:r.submission_date||'',
+      dateDecision:r.expected_decision||'',
+      deadlineReport:r.reporting_deadline||'',
+      notes:r.notes||''
+    }));
+    const _ds=document.getElementById('dbStatus');if(_ds)_ds.textContent='● live';
+    const _dsc=document.getElementById('dbStatus');if(_dsc)_dsc.className='connected';
+    return true;
+  }catch(e){
+    console.warn('DB load failed',e);
+    const _ds=document.getElementById('dbStatus');if(_ds)_ds.textContent='⚠ Could not load projects';
+    const _dsc=document.getElementById('dbStatus');if(_dsc)_dsc.className='error';
+    return false;
+  }
+}
+
+async function _upsertProjectToDB(proj){
+  if(!_sbReady())return null;
+  const row={
+    name:proj.name, theme:proj.theme, description:proj.desc,
+    budget:proj.budget, related_themes:proj.relatedThemes||[],
+    funder:proj.funder||'', responsible:proj.responsible||'',
+    status:proj.status||'planning',
+    application_deadline:proj.deadlineApp||null,
+    submission_date:proj.dateSubmitted||null,
+    expected_decision:proj.dateDecision||null,
+    reporting_deadline:proj.deadlineReport||null,
+    notes:proj.notes||'',
+    updated_at:new Date().toISOString()
+  };
+  if(proj.id&&typeof proj.id==='string'&&proj.id.includes('-')){
+    const{data,error}=await _sb.from('pipeline_projects').update(row).eq('id',proj.id).select().single();
+    if(error)throw error; return data;
+  }else{
+    const{data,error}=await _sb.from('pipeline_projects').insert(row).select().single();
+    if(error)throw error; return data;
+  }
+}
+
+async function _deleteProjectFromDB(id){
+  if(!_sbReady())return;
+  const{error}=await _sb.from('pipeline_projects').delete().eq('id',id);
+  if(error)throw error;
+}
+
+const PROJ_THEME_MAP={edu:['education'],health:['health','children','women'],housing:['housing','women','children','water'],women:['women','education'],children:['children','cso'],env:['env','education','women']};
+let _editingProjectId=null;
+const PROJ_STATUS_LABELS={planning:'Planning',drafting:'Drafting',inprogress:'In Progress',submitted:'Submitted',underreview:'Under Review',approved:'Approved',rejected:'Rejected'};
+const PROJ_STATUS_CLS={planning:'ps-planning',drafting:'ps-drafting',inprogress:'ps-inprogress',submitted:'ps-submitted',underreview:'ps-underreview',approved:'ps-approved',rejected:'ps-rejected'};
+
+function openAddProjectModal(){
+  _editingProjectId=null;
+  document.getElementById('projectModalTitle').textContent='Add Internal Project';
+  document.getElementById('pSaveBtn').textContent='Save Project';
+  ['pName','pDesc','pBudget','pFunder','pResponsible','pNotes','pDeadlineApp','pDateSubmitted','pDateDecision','pDeadlineReport'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('pTheme').value='edu';
+  document.getElementById('pStatus').value='planning';
+  document.getElementById('projectModal').classList.add('open');
+}
+function openEditProjectModal(id){
+  const proj=internalProjects.find(p=>p.id==id);
+  if(!proj)return;
+  _editingProjectId=id;
+  document.getElementById('projectModalTitle').textContent='Edit Project';
+  document.getElementById('pSaveBtn').textContent='Update Project';
+  document.getElementById('pName').value=proj.name||'';
+  document.getElementById('pTheme').value=proj.theme||'edu';
+  document.getElementById('pDesc').value=proj.desc||'';
+  document.getElementById('pBudget').value=proj.budget||'';
+  document.getElementById('pFunder').value=proj.funder||'';
+  document.getElementById('pResponsible').value=proj.responsible||'';
+  document.getElementById('pStatus').value=proj.status||'planning';
+  document.getElementById('pNotes').value=proj.notes||'';
+  document.getElementById('pDeadlineApp').value=proj.deadlineApp||'';
+  document.getElementById('pDateSubmitted').value=proj.dateSubmitted||'';
+  document.getElementById('pDateDecision').value=proj.dateDecision||'';
+  document.getElementById('pDeadlineReport').value=proj.deadlineReport||'';
+  document.getElementById('projectModal').classList.add('open');
+}
+function closeProjectModal(){document.getElementById('projectModal').classList.remove('open');}
+
+async function saveProject(){
+  const name=document.getElementById('pName').value.trim();
+  if(!name){alert('Project name required.');return;}
+  const theme=document.getElementById('pTheme').value;
+  const proj={
+    id:_editingProjectId,
+    name,theme,
+    desc:document.getElementById('pDesc').value,
+    budget:document.getElementById('pBudget').value||'TBA',
+    relatedThemes:PROJ_THEME_MAP[theme]||[],
+    funder:document.getElementById('pFunder').value,
+    responsible:document.getElementById('pResponsible').value,
+    status:document.getElementById('pStatus').value||'planning',
+    notes:document.getElementById('pNotes').value,
+    deadlineApp:document.getElementById('pDeadlineApp').value,
+    dateSubmitted:document.getElementById('pDateSubmitted').value,
+    dateDecision:document.getElementById('pDateDecision').value,
+    deadlineReport:document.getElementById('pDeadlineReport').value
+  };
+  const btn=document.getElementById('pSaveBtn');
+  btn.textContent='Saving…';btn.disabled=true;
+  if(_sbReady()){
+    try{
+      const saved=await _upsertProjectToDB(proj);
+      proj.id=saved.id;
+      if(_editingProjectId){const idx=internalProjects.findIndex(p=>p.id==_editingProjectId);if(idx!==-1)internalProjects[idx]=proj;}
+      else{internalProjects.push(proj);}
+    }catch(e){
+      alert('Could not save to database: '+e.message);
+      btn.textContent=_editingProjectId?'Update Project':'Save Project';btn.disabled=false;
+      return;
+    }
+  }else{
+    if(_editingProjectId){const idx=internalProjects.findIndex(p=>p.id==_editingProjectId);if(idx!==-1)internalProjects[idx]={...internalProjects[idx],...proj};}
+    else{proj.id=Date.now();internalProjects.push(proj);}
+    autoSave();
+  }
+  btn.textContent=_editingProjectId?'Update Project':'Save Project';btn.disabled=false;
+  renderPipeline();renderMatches();
+  closeProjectModal();
+}
+
+async function deleteProject(id){
+  if(!confirm('Remove this project from the pipeline?'))return;
+  if(_sbReady()){
+    try{await _deleteProjectFromDB(id);}
+    catch(e){alert('Could not delete: '+e.message);return;}
+  }
+  internalProjects=internalProjects.filter(p=>p.id!=id);
+  renderPipeline();renderMatches();
+  autoSave();
+}
+
+// ===== TABS =====
+function showTab(t){
+  ['grants','pipeline','matches','sources'].forEach(n=>document.getElementById('tab-'+n).style.display=n===t?'block':'none');
+  document.querySelectorAll('.tab').forEach((el,i)=>el.classList.toggle('active',['grants','pipeline','matches','sources'][i]===t));
+  if(t==='pipeline')renderPipeline();
+  if(t==='matches')renderMatches();
+}
+
+// ===== DRAG & DROP FOR UPLOAD ZONE =====
+function setupUploadZone(){
+  const zone=document.getElementById('uploadZone');
+  zone.addEventListener('dragover',e=>{e.preventDefault();zone.classList.add('dragover');});
+  zone.addEventListener('dragleave',()=>zone.classList.remove('dragover'));
+  zone.addEventListener('drop',e=>{
+    e.preventDefault();zone.classList.remove('dragover');
+    const file=e.dataTransfer.files[0];
+    if(file){
+      document.getElementById('docFileInput').files; // reference
+      // Simulate selection
+      const dt=new DataTransfer();dt.items.add(file);
+      document.getElementById('docFileInput').files=dt.files;
+      onFileSelected(document.getElementById('docFileInput'));
+    }
+  });
+}
+
+// ===== INIT =====
+window.onload=async function(){
+  // Init Supabase
+  initSupabase();
+  // Load pipeline projects from Supabase (if configured), else fall back to localStorage
+  const dbLoaded=await loadProjectsFromDB();
+  // ── Cloud sync: try remote first, fall back to localStorage ──
+  const el_ss=document.getElementById('saveStatus');
+  const el_lu=document.getElementById('lastUpdated');
+  if(el_ss)el_ss.textContent='☁️ Loading…';
+  const cloudAt=await loadRemoteData();
+  let savedAt=cloudAt;
+  let syncSource=cloudAt?'cloud':'local';
+  if(!cloudAt){savedAt=loadFromStorage();}
+  if(savedAt){
+    const ts=typeof savedAt==='string'?new Date(savedAt):null;
+    const label=ts?ts.toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'}):'previously';
+    if(el_lu)el_lu.textContent=(syncSource==='cloud'?'☁️ Synced from cloud (':'Loaded saved data (')+label+')';
+    if(el_ss)el_ss.textContent=syncSource==='cloud'?'synced':'restored from save';
+    setTimeout(()=>{if(el_ss)el_ss.textContent='';},3000);
+    // ── Radar merge: inject new default grants not yet in stored data ──
+    const _storedIds=new Set(grants.map(g=>Number(g.id)));
+    const _newGrants=DEFAULT_GRANTS.filter(g=>!_storedIds.has(Number(g.id)));
+    if(_newGrants.length){
+      grants=[...grants,..._newGrants];
+      saveToStorage();
+      if(el_ss){el_ss.textContent='✨ '+_newGrants.length+' new grant'+(_newGrants.length!==1?'s':'')+' added from latest radar';setTimeout(()=>{el_ss.textContent='';},5000);}
+    }
+  } else {
+    if(el_lu)el_lu.textContent=new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
+  }
+  initIDB().then(()=>{
+    rebuildFunderFilter();rebuildThemeFilter();
+    currentView=[...grants];
+    renderTable();updateStats();
+    setupUploadZone();
+    document.getElementById('grantModal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal();});
+    document.getElementById('projectModal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeProjectModal();});
+  });
+};
+</script>
+</body>
+</html>

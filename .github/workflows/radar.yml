@@ -1,0 +1,49 @@
+name: Funding Radar
+
+# Runs twice a month (1st & 15th, 06:00 UTC). GitHub cron is UTC and has no
+# native "bi-weekly", so day-of-month 1,15 is the closest stable schedule.
+# You can also trigger it by hand from the Actions tab (workflow_dispatch).
+on:
+  schedule:
+    - cron: "0 6 1,15 * *"
+  workflow_dispatch: {}
+
+# Let the workflow commit the refreshed dashboard back to the repo.
+permissions:
+  contents: write
+
+concurrency:
+  group: funding-radar
+  cancel-in-progress: false
+
+jobs:
+  radar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run funding radar
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: python radar.py
+
+      - name: Commit updated dashboard
+        run: |
+          git config user.name  "Fundacao Ancora Funding Radar"
+          git config user.email "radar@fundacaoancora.pt"
+          if [ -n "$(git status --porcelain index.html)" ]; then
+            git add index.html
+            git commit -m "Funding radar update — $(date -u +'%-d %b %Y')"
+            git push
+          else
+            echo "No changes this run."
+          fi
