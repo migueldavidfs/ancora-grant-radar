@@ -83,6 +83,20 @@ calls, platforms) relevant to Âncora that are NOT already tracked:
 Already tracked (do NOT repeat these, or close variants):
 {chr(10).join('- ' + n for n in existing_names)}
 
+CRITICAL — be specific, not general:
+- Only include ACTUAL, identifiable opportunities: a named call/aviso/notice, a
+  specific financing facility, or a named programme with a concrete access route.
+- `url` MUST be the deepest specific page you can find — the call/aviso page, the
+  EU Funding & Tenders call by callIdentifier, the notice on Balcão dos Fundos /
+  Portal MyIHRU, the EIB/CEB project page — NOT a homepage or a generic "grants"
+  landing page. If you can only find a generic landing page, either omit the item
+  or set fit<=2 and say so in notes.
+- Prefer items with a real deadline or clearly-stated access route.
+- Distinguish OPEN CALLS from FACILITIES/RELATIONSHIPS: begin fitDesc with
+  "OPEN CALL — ", "FACILITY — " or "RELATIONSHIP — " accordingly. Remember Âncora
+  applies as a housing OPERATOR/PROMOTER (often via a municipal/IPSS partnership),
+  not as an individual tenant — exclude tenant-allocation lotteries.
+
 Return ONLY a JSON array (no prose, no markdown fences) of new opportunities.
 Each element must be an object with exactly these keys:
   id          integer, starting at {max_id + 1} and incrementing
