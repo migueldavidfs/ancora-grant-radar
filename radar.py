@@ -38,6 +38,11 @@ count -- the model is capital mobilisation, not only grants.
 """
 
 SOURCES = [
+    # Priority aviso portals — check these FIRST every run for open calls/avisos:
+    "Alentejo 2030 Avisos — https://alentejo.portugal2030.pt/avisos/",
+    "Portugal 2030 Avisos — https://portugal2030.pt/avisos/",
+    "Lisboa 2030 Avisos — https://lisboa.portugal2030.pt/avisos/",
+    "EU Funding & Tenders — Portugal open topics (programCcm2Id=43108390) — https://ec.europa.eu/info/funding-tenders/opportunities/portal/screen/opportunities/topic-search;programmePeriod=2021%20-%202027;programCcm2Id=43108390;statusCodes=31094501,31094502,31094503",
     "IHRU / Portal da Habitacao — https://www.portaldahabitacao.pt/",
     "1.º Direito — https://www.portaldahabitacao.pt/1.%C2%BA-direito",
     "PRR / Recuperar Portugal (housing RE-C02) — https://recuperarportugal.gov.pt/",

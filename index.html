@@ -221,6 +221,7 @@
     <span class="save-status" id="saveStatus"></span><span id="dbStatus"></span>
     <button class="hbtn-save" id="saveBtn" onclick="manualSave()">💾 Save</button>
     <button class="hbtn" onclick="exportJSON()">⬇ Export Backup</button>
+    <button class="hbtn" onclick="setSyncToken()" title="Enable optional cloud write-sync for this browser">☁ Sync setup</button>
     <button class="hbtn" onclick="openModal()">＋ Add Grant</button>
     <button class="hbtn" onclick="openAddProjectModal()">＋ Add Project</button>
   </div>
@@ -303,49 +304,11 @@
   </div>
 
   <div id="tab-sources" style="display:none;">
-    <p style="font-size:12px;color:var(--gray);margin-bottom:14px;">All databases and portals checked on every grant radar run. Click any source to open it directly.</p>
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:12px;margin-bottom:20px;">
-
-      <div style="background:white;border:1px solid var(--border);border-radius:10px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.05);">
-        <div style="background:var(--navy);color:white;padding:8px 14px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;">🇵🇹 Portuguese Public Funders</div>
-        <div style="padding:12px 14px;display:flex;flex-direction:column;gap:9px;">
-          <a href="https://www.portaldahabitacao.pt/" target="_blank" class="btn-open" style="justify-content:space-between;">IHRU / Portal da Habitação — Programmes <span>↗</span></a>
-          <a href="https://www.portaldahabitacao.pt/1.%C2%BA-direito" target="_blank" class="btn-open" style="justify-content:space-between;">1.º Direito — Housing Access <span>↗</span></a>
-          <a href="https://recuperarportugal.gov.pt/prr-resiliencia/habitacao/re-c02-i01-programa-de-apoio-ao-acesso-a-habitacao/" target="_blank" class="btn-open" style="justify-content:space-between;">Recuperar Portugal (PRR) — Housing RE-C02 <span>↗</span></a>
-          <a href="https://www.bpfomento.pt/" target="_blank" class="btn-open" style="justify-content:space-between;">Banco Português de Fomento — InvestEU <span>↗</span></a>
-        </div>
-      </div>
-
-      <div style="background:white;border:1px solid var(--border);border-radius:10px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.05);">
-        <div style="background:#1d4ed8;color:white;padding:8px 14px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;">🇪🇺 EU Housing & Funding</div>
-        <div style="padding:12px 14px;display:flex;flex-direction:column;gap:9px;">
-          <a href="https://housing.ec.europa.eu/european-affordable-housing-plan_en" target="_blank" class="btn-open" style="justify-content:space-between;">European Affordable Housing Plan <span>↗</span></a>
-          <a href="https://housing.ec.europa.eu/pan-european-housing-investment-platform_en" target="_blank" class="btn-open" style="justify-content:space-between;">Pan-European Housing Investment Platform <span>↗</span></a>
-          <a href="https://ec.europa.eu/info/funding-tenders/opportunities/portal/screen/opportunities/calls-for-proposals" target="_blank" class="btn-open" style="justify-content:space-between;">EU Funding & Tenders Portal <span>↗</span></a>
-          <a href="https://new-european-bauhaus.europa.eu/index_en" target="_blank" class="btn-open" style="justify-content:space-between;">New European Bauhaus <span>↗</span></a>
-        </div>
-      </div>
-
-      <div style="background:white;border:1px solid var(--border);border-radius:10px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.05);">
-        <div style="background:#059669;color:white;padding:8px 14px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;">🏦 Development Banks & Loan Finance</div>
-        <div style="padding:12px 14px;display:flex;flex-direction:column;gap:9px;">
-          <a href="https://www.eib.org/en/projects/topics/sustainable-cities-regions/urban-development/affordable-and-sustainable-housing" target="_blank" class="btn-open" style="justify-content:space-between;">EIB — Affordable & Sustainable Housing <span>↗</span></a>
-          <a href="https://coebank.org/en/sectors/affordable-housing/" target="_blank" class="btn-open" style="justify-content:space-between;">Council of Europe Development Bank (CEB) <span>↗</span></a>
-          <a href="https://investeu.europa.eu/index_en" target="_blank" class="btn-open" style="justify-content:space-between;">InvestEU — Social & Sustainable Infrastructure <span>↗</span></a>
-        </div>
-      </div>
-
-      <div style="background:white;border:1px solid var(--border);border-radius:10px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.05);">
-        <div style="background:#7c3aed;color:white;padding:8px 14px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;">🤝 Philanthropy, Impact & Regional</div>
-        <div style="padding:12px 14px;display:flex;flex-direction:column;gap:9px;">
-          <a href="https://gulbenkian.pt/programas/programa-desenvolvimento-sustentavel/novos-instrumentos-de-financiamento/" target="_blank" class="btn-open" style="justify-content:space-between;">Fundação Calouste Gulbenkian — Impact <span>↗</span></a>
-          <a href="https://pis.portugal2030.pt/en/home-en/" target="_blank" class="btn-open" style="justify-content:space-between;">Portugal Inovação Social 2030 <span>↗</span></a>
-          <a href="https://portugal2030.pt/" target="_blank" class="btn-open" style="justify-content:space-between;">Portugal 2030 — Operational Programmes <span>↗</span></a>
-          <a href="https://news.fundsforngos.org/tag/housing/" target="_blank" class="btn-open" style="justify-content:space-between;">fundsforNGOs — Housing (news) <span>↗</span></a>
-        </div>
-      </div>
-
-    
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;flex-wrap:wrap;">
+      <p style="font-size:12px;color:var(--gray);margin:0;">Link database of portals the radar monitors on every run. <span id="srcCount"></span> Click a source to open it; add or remove your own.</p>
+      <button class="hbtn" style="background:var(--navy);" onclick="addSource()">＋ Add Source</button>
+    </div>
+    <div id="sourcesGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:12px;margin-bottom:20px;"></div>
     <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:12px 16px;font-size:12px;color:#166534;">
       💡 <strong>Tip:</strong> These sources are automatically checked by your bi-weekly Grant Radar (runs bi-weekly). Use this tab to do a manual check at any time between runs.
     </div>
@@ -606,6 +569,7 @@ function saveToStorage(){
     grants,
     internalProjects,
     extraThemes,
+    sourceLinks,
     savedAt:new Date().toISOString()
   };
   try{
@@ -626,6 +590,7 @@ function loadFromStorage(){
       grants=data.grants;
       internalProjects=data.internalProjects||internalProjects;
       extraThemes=data.extraThemes||[];
+      if(Array.isArray(data.sourceLinks))sourceLinks=data.sourceLinks;
       return data.savedAt||true;
     }
   }catch(e){console.warn('Could not load from localStorage:',e);}
@@ -645,11 +610,24 @@ function showSaveConfirm(msg){
   },2200);
 }
 
-// ===== GITHUB CLOUD SYNC =====
-const SYNC_TOKEN='ghp_6X2EEqEidLcVm'+'vs9SMuWOozfk1C6gU2JXkYr';
-const SYNC_REPO='migueldavidfs/fondation-stamm-grant-radar';
+// ===== GITHUB CLOUD SYNC (optional; NO token ever ships in this page) =====
+// Reading data.json is public and needs no token. Writing back is optional:
+// paste a fine-scoped token via the "☁ Sync setup" button — it is kept only in
+// THIS browser's localStorage and is never committed to the repo.
+let SYNC_TOKEN=localStorage.getItem('ancora_gh_sync_token')||'';
+const SYNC_REPO='migueldavidfs/ancora-grant-radar';
 const SYNC_FILE='data.json';
-const SYNC_BRANCH='gh-pages';
+const SYNC_BRANCH='main';
+
+function setSyncToken(){
+  const cur=SYNC_TOKEN?'(a token is currently set)':'(no token set)';
+  const t=prompt('Paste a GitHub token to enable cloud write-sync '+cur+'.\nLeave blank and press OK to clear it.\n\nThe token is stored only in this browser and never committed.');
+  if(t===null)return;
+  SYNC_TOKEN=t.trim();
+  if(SYNC_TOKEN)localStorage.setItem('ancora_gh_sync_token',SYNC_TOKEN);
+  else localStorage.removeItem('ancora_gh_sync_token');
+  alert(SYNC_TOKEN?'Cloud write-sync enabled for this browser.':'Cloud write-sync disabled.');
+}
 
 async function loadRemoteData(){
   try{
@@ -661,6 +639,7 @@ async function loadRemoteData(){
       grants=data.grants;
       internalProjects=data.internalProjects||internalProjects;
       extraThemes=data.extraThemes||[];
+      if(Array.isArray(data.sourceLinks))sourceLinks=data.sourceLinks;
       saveToStorage();
       return data.savedAt||true;
     }
@@ -669,8 +648,9 @@ async function loadRemoteData(){
 }
 
 async function saveRemoteData(){
+  if(!SYNC_TOKEN)return false; // no token in this browser → localStorage only
   try{
-    const payload={grants,internalProjects,extraThemes,savedAt:new Date().toISOString()};
+    const payload={grants,internalProjects,extraThemes,sourceLinks,savedAt:new Date().toISOString()};
     const jsonStr=JSON.stringify(payload,null,2);
     const content=btoa(unescape(encodeURIComponent(jsonStr)));
     // Get current SHA (required for updates)
@@ -734,6 +714,72 @@ const DEFAULT_GRANTS=[
 ];
 
 let grants=[...DEFAULT_GRANTS];
+
+// ===== SOURCE LINK DATABASE (portals the radar monitors) =====
+const SOURCE_CATEGORIES={
+  aviso:{label:'🔎 Priority Aviso Portals (monitored)',color:'#b45309'},
+  pt:{label:'🇵🇹 Portuguese Public Funders',color:'#1a2744'},
+  eu:{label:'🇪🇺 EU Housing & Funding',color:'#1d4ed8'},
+  bank:{label:'🏦 Development Banks & Loan Finance',color:'#059669'},
+  phil:{label:'🤝 Philanthropy, Impact & Regional',color:'#7c3aed'}
+};
+const DEFAULT_SOURCES=[
+  {id:1,cat:'aviso',label:'Alentejo 2030 — Avisos',url:'https://alentejo.portugal2030.pt/avisos/'},
+  {id:2,cat:'aviso',label:'Portugal 2030 — Avisos',url:'https://portugal2030.pt/avisos/'},
+  {id:3,cat:'aviso',label:'Lisboa 2030 — Avisos',url:'https://lisboa.portugal2030.pt/avisos/'},
+  {id:4,cat:'aviso',label:'EU Funding & Tenders — Portugal open topics',url:'https://ec.europa.eu/info/funding-tenders/opportunities/portal/screen/opportunities/topic-search;callCode=null;freeTextSearchKeyword=;matchWholeText=true;typeCodes=1;statusCodes=31094501,31094502,31094503;programmePeriod=2021%20-%202027;programCcm2Id=43108390;programDivisionCode=null;focusAreaCode=null;geographicalZonesCode=null;programmeDivisionProspect=null;startDateLte=null;startDateGte=null;crossCuttingPriorityCode=null;cpvCode=null;performanceOfDelivery=null;sortQuery=sortStatus;orderBy=asc;onlyTenders=false;topicListKey=topicSearchTablePageState'},
+  {id:5,cat:'pt',label:'IHRU Arrenda — Programa de Apoio ao Arrendamento',url:'https://ihruarrenda.portaldahabitacao.pt/'},
+  {id:6,cat:'pt',label:'Portal da Habitação — 1.º Direito',url:'https://www.portaldahabitacao.pt/1.%C2%BA-direito'},
+  {id:7,cat:'pt',label:'Recuperar Portugal (PRR) — Housing RE-C02',url:'https://recuperarportugal.gov.pt/prr-resiliencia/habitacao/re-c02-i01-programa-de-apoio-ao-acesso-a-habitacao/'},
+  {id:8,cat:'pt',label:'Banco Português de Fomento',url:'https://www.bpfomento.pt/'},
+  {id:9,cat:'eu',label:'New European Bauhaus — Calls',url:'https://new-european-bauhaus.europa.eu/get-involved/calls-proposals_en'},
+  {id:10,cat:'eu',label:'European Affordable Housing Plan',url:'https://housing.ec.europa.eu/european-affordable-housing-plan_en'},
+  {id:11,cat:'bank',label:'EIB — Affordable & Sustainable Housing',url:'https://www.eib.org/en/projects/topics/sustainable-cities-regions/urban-development/affordable-and-sustainable-housing'},
+  {id:12,cat:'bank',label:'Council of Europe Development Bank (CEB)',url:'https://coebank.org/en/sectors/affordable-housing/'},
+  {id:13,cat:'phil',label:'Fundação Calouste Gulbenkian — Impact finance',url:'https://gulbenkian.pt/programas/programa-desenvolvimento-sustentavel/novos-instrumentos-de-financiamento/'},
+  {id:14,cat:'phil',label:'Portugal Inovação Social — Calls',url:'https://pis.portugal2030.pt/en/calls/'}
+];
+let sourceLinks=[...DEFAULT_SOURCES];
+
+function renderSources(){
+  const grid=document.getElementById('sourcesGrid');
+  if(!grid)return;
+  const cnt=document.getElementById('srcCount');
+  if(cnt)cnt.textContent='('+sourceLinks.length+' sources)';
+  const cats=Object.keys(SOURCE_CATEGORIES).filter(c=>sourceLinks.some(s=>s.cat===c));
+  const others=[...new Set(sourceLinks.map(s=>s.cat).filter(c=>!SOURCE_CATEGORIES[c]))];
+  grid.innerHTML=[...cats,...others].map(cat=>{
+    const meta=SOURCE_CATEGORIES[cat]||{label:cat,color:'#6b7280'};
+    const rows=sourceLinks.filter(s=>s.cat===cat).map(s=>`
+      <div style="display:flex;align-items:center;gap:6px;">
+        <a href="${s.url}" target="_blank" class="btn-open" style="justify-content:space-between;flex:1;min-width:0;"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${s.label}</span> <span>↗</span></a>
+        <button class="btn-del-row" title="Remove source" onclick="deleteSource(${s.id})">🗑</button>
+      </div>`).join('');
+    return `<div style="background:white;border:1px solid var(--border);border-radius:10px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.05);">
+      <div style="background:${meta.color};color:white;padding:8px 14px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;">${meta.label}</div>
+      <div style="padding:12px 14px;display:flex;flex-direction:column;gap:9px;">${rows}</div>
+    </div>`;
+  }).join('');
+}
+
+function addSource(){
+  const url=prompt('Source URL (the portal/aviso page to monitor):');
+  if(!url||!url.trim())return;
+  const label=prompt('Short label for this source:', url.replace(/^https?:\/\//,'').split('/')[0]);
+  if(label===null)return;
+  const catKeys=Object.keys(SOURCE_CATEGORIES);
+  const cat=prompt('Category — type one of:\n'+catKeys.join(', '),'aviso');
+  const id=(sourceLinks.reduce((m,s)=>Math.max(m,s.id),0)||0)+1;
+  sourceLinks.push({id,cat:(cat&&cat.trim())||'aviso',label:label.trim()||url,url:url.trim()});
+  renderSources();autoSave();
+}
+
+function deleteSource(id){
+  const s=sourceLinks.find(x=>x.id===id);
+  if(!s||!confirm('Remove source "'+s.label+'"?'))return;
+  sourceLinks=sourceLinks.filter(x=>x.id!==id);
+  renderSources();autoSave();
+}
 
 let internalProjects=[
   {id:1,name:'New Construction on Municipal Land (surface rights)',theme:'housing',desc:'Building affordable rental homes on land ceded by municipalities under surface-rights agreements. Priority metros: Lisboa, Oeiras, Cascais, Sintra.',budget:'—',relatedThemes:['housing','env']},
@@ -1410,6 +1456,7 @@ function showTab(t){
   document.querySelectorAll('.tab').forEach((el,i)=>el.classList.toggle('active',['grants','pipeline','matches','sources'][i]===t));
   if(t==='pipeline')renderPipeline();
   if(t==='matches')renderMatches();
+  if(t==='sources')renderSources();
 }
 
 // ===== DRAG & DROP FOR UPLOAD ZONE =====
@@ -1464,7 +1511,7 @@ window.onload=async function(){
   initIDB().then(()=>{
     rebuildFunderFilter();rebuildThemeFilter();
     currentView=[...grants];
-    renderTable();updateStats();
+    renderTable();updateStats();renderSources();
     setupUploadZone();
     document.getElementById('grantModal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal();});
     document.getElementById('projectModal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeProjectModal();});
