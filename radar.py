@@ -97,6 +97,12 @@ CRITICAL — be specific, not general:
   landing page. If you can only find a generic landing page, either omit the item
   or set fit<=2 and say so in notes.
 - Prefer items with a real deadline or clearly-stated access route.
+- For Portuguese regional/national avisos (Portugal 2030, Alentejo/Lisboa/Centro/
+  Norte 2030, IHRU), the `url` MUST be the specific aviso — the aviso PDF or its
+  Balcão dos Fundos submission page — and you MUST put the "Código do Aviso"
+  (e.g. ALT2030-2026-43) at the START of `notes`. These per-aviso pages rotate as
+  calls open/close, so link the current one, not the portal listing.
+- For EU calls use the Funding & Tenders callIdentifier/topic deep link.
 - Distinguish OPEN CALLS from FACILITIES/RELATIONSHIPS: begin fitDesc with
   "OPEN CALL — ", "FACILITY — " or "RELATIONSHIP — " accordingly. Remember Âncora
   applies as a housing OPERATOR/PROMOTER (often via a municipal/IPSS partnership),
